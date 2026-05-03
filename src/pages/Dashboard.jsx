@@ -100,14 +100,18 @@ export default function Dashboard() {
           }}>
             {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
           </button>
-          <button onClick={() => navigate('/menu')} style={{
-            background: '#333', color: 'white', border: 'none',
-            borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer'
-          }}>Menú</button>
-          <button onClick={() => navigate('/stats')} style={{
-            background: '#333', color: 'white', border: 'none',
-            borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer'
-          }}>Stats</button>
+         <button onClick={() => navigate('/menu')} style={{
+  background: '#333', color: 'white', border: 'none',
+  borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer'
+}}>Menú</button>
+<button onClick={() => navigate('/mesas')} style={{
+  background: '#333', color: 'white', border: 'none',
+  borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer'
+}}>Mesas</button>
+<button onClick={() => navigate('/stats')} style={{
+  background: '#333', color: 'white', border: 'none',
+  borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer'
+}}>Stats</button>
         </div>
       </div>
 

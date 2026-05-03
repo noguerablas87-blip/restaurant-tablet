@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Menu from './pages/Menu'
 import Stats from './pages/Stats'
+import Mesas from './pages/Mesas'
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token')
@@ -17,6 +18,7 @@ function App() {
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/menu" element={<PrivateRoute><Menu /></PrivateRoute>} />
       <Route path="/stats" element={<PrivateRoute><Stats /></PrivateRoute>} />
+      <Route path="/mesas" element={<PrivateRoute><Mesas /></PrivateRoute>} />
     </Routes>
   )
 }
