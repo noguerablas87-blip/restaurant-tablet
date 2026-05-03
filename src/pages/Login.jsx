@@ -20,8 +20,8 @@ export default function Login() {
       localStorage.setItem('token', res.data.access_token)
       localStorage.setItem('local_id', res.data.local_id)
       localStorage.setItem('nombre', res.data.nombre)
-      localStorage.setItem('slug', data.slug)
-      navigate('/dashboard')
+     localStorage.setItem('slug', slug)
+     window.location.href = window.location.origin + '/dashboard'
     } catch (e) {
       setError('Usuario o contraseña incorrectos')
     } finally {

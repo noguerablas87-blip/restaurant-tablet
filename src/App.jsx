@@ -4,15 +4,19 @@ import Dashboard from './pages/Dashboard'
 import Menu from './pages/Menu'
 import Stats from './pages/Stats'
 
-function App() {
+function PrivateRoute({ children }) {
   const token = localStorage.getItem('token')
+  return token ? children : <Navigate to="/login" />
+}
+
+function App() {
   return (
     <Routes>
-      <Route path="/" element={token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+      <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/menu" element={<Menu />} />
-      <Route path="/stats" element={<Stats />} />
+      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="/menu" element={<PrivateRoute><Menu /></PrivateRoute>} />
+      <Route path="/stats" element={<PrivateRoute><Stats /></PrivateRoute>} />
     </Routes>
   )
 }
