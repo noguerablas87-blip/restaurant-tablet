@@ -4,6 +4,7 @@ import axios from 'axios'
 
 const API = 'https://restaurant-backend-production-1271.up.railway.app'
 const BASE_URL = 'https://illustrious-macaron-a47aaf.netlify.app'
+
 export default function Mesas() {
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
@@ -32,6 +33,15 @@ export default function Mesas() {
       cargar()
     } catch (e) { }
     finally { setCargando(false) }
+  }
+
+  const eliminarMesa = async (id) => {
+    if (!confirm('¿Eliminar esta mesa?')) return
+    try {
+      await axios.delete(`${API}/locales/mi-local/mesas/${id}`, { headers })
+      cargar()
+      setQrSeleccionado(null)
+    } catch (e) { }
   }
 
   const verQR = async (numero) => {
@@ -66,7 +76,7 @@ export default function Mesas() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: 'system-ui, sans-serif' }}>
-      
+
       {/* Header */}
       <div style={{ background: '#1a1a2e', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={() => navigate('/dashboard')} style={{ background: '#333', color: 'white', border: 'none', borderRadius: 20, padding: '8px 16px', cursor: 'pointer' }}>← Volver</button>
@@ -105,15 +115,25 @@ export default function Mesas() {
           {mesas.length === 0 && <p style={{ color: '#aaa', textAlign: 'center' }}>No tenés mesas todavía. Agregá algunas arriba.</p>}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 12 }}>
             {mesas.map(m => (
-              <button key={m.id} onClick={() => verQR(m.numero)} style={{
-                background: qrSeleccionado?.numero === m.numero ? '#1D9E75' : '#f0f0f0',
-                color: qrSeleccionado?.numero === m.numero ? 'white' : '#333',
-                border: 'none', borderRadius: 12, padding: '20px 10px',
-                fontSize: 16, fontWeight: 700, cursor: 'pointer',
-                textAlign: 'center'
-              }}>
-                🪑<br />Mesa {m.numero}
-              </button>
+              <div key={m.id} style={{ position: 'relative' }}>
+                <button onClick={() => verQR(m.numero)} style={{
+                  width: '100%',
+                  background: qrSeleccionado?.numero === m.numero ? '#1D9E75' : '#f0f0f0',
+                  color: qrSeleccionado?.numero === m.numero ? 'white' : '#333',
+                  border: 'none', borderRadius: 12, padding: '20px 10px',
+                  fontSize: 16, fontWeight: 700, cursor: 'pointer',
+                  textAlign: 'center'
+                }}>
+                  🪑<br />Mesa {m.numero}
+                </button>
+                <button onClick={() => eliminarMesa(m.id)} style={{
+                  position: 'absolute', top: -6, right: -6,
+                  background: '#F44336', color: 'white', border: 'none',
+                  borderRadius: '50%', width: 22, height: 22,
+                  fontSize: 12, cursor: 'pointer', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center'
+                }}>✕</button>
+              </div>
             ))}
           </div>
         </div>
