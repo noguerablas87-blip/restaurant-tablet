@@ -16,6 +16,13 @@ export default function Dashboard() {
 
   const headers = { Authorization: `Bearer ${token}` }
 
+  const cargarLocal = async () => {
+    try {
+      const res = await axios.get(`${API}/locales/mi-local/info`, { headers })
+      setAbierto(res.data.abierto)
+    } catch (e) { }
+  }
+
   const cargarPedidos = async () => {
     try {
       const res = await axios.get(`${API}/pedidos/mi-local/activos`, { headers })
@@ -51,16 +58,15 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
+    cargarLocal()
     cargarPedidos()
     cargarStats()
 
-    // WebSocket para pedidos en tiempo real
     const ws = new WebSocket(`wss://restaurant-backend-production-1271.up.railway.app/pedidos/ws/${local_id}`)
     wsRef.current = ws
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data)
       if (data.tipo === 'nuevo_pedido') {
-        // Sonido de notificación
         try { new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play() } catch (e) { }
         cargarPedidos()
         cargarStats()
@@ -81,8 +87,6 @@ export default function Dashboard() {
   const pendientes = pedidos.filter(p => p.estado === 'pendiente')
   const enPreparacion = pedidos.filter(p => p.estado === 'aceptado')
 
-  const colorEstado = { pendiente: '#FF9800', aceptado: '#2196F3', listo: '#4CAF50' }
-
   return (
     <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: 'system-ui, sans-serif' }}>
 
@@ -100,18 +104,9 @@ export default function Dashboard() {
           }}>
             {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
           </button>
-         <button onClick={() => navigate('/menu')} style={{
-  background: '#333', color: 'white', border: 'none',
-  borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer'
-}}>Menú</button>
-<button onClick={() => navigate('/mesas')} style={{
-  background: '#333', color: 'white', border: 'none',
-  borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer'
-}}>Mesas</button>
-<button onClick={() => navigate('/stats')} style={{
-  background: '#333', color: 'white', border: 'none',
-  borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer'
-}}>Stats</button>
+          <button onClick={() => navigate('/menu')} style={{ background: '#333', color: 'white', border: 'none', borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>Menú</button>
+          <button onClick={() => navigate('/mesas')} style={{ background: '#333', color: 'white', border: 'none', borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>Mesas</button>
+          <button onClick={() => navigate('/stats')} style={{ background: '#333', color: 'white', border: 'none', borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>Stats</button>
         </div>
       </div>
 
