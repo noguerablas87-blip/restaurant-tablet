@@ -12,7 +12,10 @@ export default function Menu() {
   const headers = { Authorization: `Bearer ${token}` }
   const [categorias, setCategorias] = useState([])
   const [nuevaCat, setNuevaCat] = useState('')
-  const [nuevoProducto, setNuevoProducto] = useState({ nombre: '', precio: '', descripcion: '', categoria_id: '', imagen_url: '' })
+  const [nuevoProducto, setNuevoProducto] = useState({
+    nombre: '', precio: '', descripcion: '',
+    categoria_id: '', imagen_url: '', tiempo_prep: '10'
+  })
   const [mostrarFormProd, setMostrarFormProd] = useState(false)
   const [subiendo, setSubiendo] = useState(false)
   const [preview, setPreview] = useState(null)
@@ -32,10 +35,7 @@ export default function Menu() {
       const formData = new FormData()
       formData.append('file', archivo)
       formData.append('upload_preset', CLOUDINARY_PRESET)
-      const res = await axios.post(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
-        formData
-      )
+      const res = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, formData)
       setNuevoProducto(prev => ({ ...prev, imagen_url: res.data.secure_url }))
       setPreview(res.data.secure_url)
     } catch (e) {
@@ -60,9 +60,10 @@ export default function Menu() {
       await axios.post(`${API}/menu/productos`, {
         ...nuevoProducto,
         precio: parseFloat(nuevoProducto.precio),
-        categoria_id: parseInt(nuevoProducto.categoria_id)
+        categoria_id: parseInt(nuevoProducto.categoria_id),
+        tiempo_prep: parseInt(nuevoProducto.tiempo_prep) || 10,
       }, { headers })
-      setNuevoProducto({ nombre: '', precio: '', descripcion: '', categoria_id: '', imagen_url: '' })
+      setNuevoProducto({ nombre: '', precio: '', descripcion: '', categoria_id: '', imagen_url: '', tiempo_prep: '10' })
       setPreview(null)
       setMostrarFormProd(false)
       cargar()
@@ -84,81 +85,126 @@ export default function Menu() {
     } catch (e) { }
   }
 
+  const inputStyle = {
+    border: '1.5px solid #e0e0e0', borderRadius: 10,
+    padding: '10px 12px', fontSize: 14, outline: 'none',
+    fontFamily: 'inherit', background: '#fafafa',
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ background: '#1a1a2e', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button onClick={() => navigate('/dashboard')} style={{ background: '#333', color: 'white', border: 'none', borderRadius: 20, padding: '8px 16px', cursor: 'pointer' }}>← Volver</button>
-        <h1 style={{ color: 'white', margin: 0, fontSize: 18 }}>Gestión del menú</h1>
+    <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+
+      {/* Header */}
+      <div style={{ background: '#1a1a2e', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={() => navigate('/dashboard')} style={{
+          background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none',
+          borderRadius: 20, padding: '7px 14px', cursor: 'pointer', fontSize: 13
+        }}>← Volver</button>
+        <h1 style={{ color: 'white', margin: 0, fontSize: 17, fontWeight: 700 }}>Gestión del menú</h1>
       </div>
 
-      <div style={{ padding: 20 }}>
+      <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* Nueva categoría */}
-        <div style={{ background: 'white', borderRadius: 16, padding: 16, marginBottom: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 12px', fontSize: 15 }}>Nueva categoría</h3>
+        <div style={{ background: 'white', borderRadius: 14, padding: 16, border: '1px solid #efefef' }}>
+          <p style={{ margin: '0 0 10px', fontWeight: 700, fontSize: 13, color: '#999', letterSpacing: 1, textTransform: 'uppercase' }}>Nueva categoría</p>
           <div style={{ display: 'flex', gap: 8 }}>
             <input value={nuevaCat} onChange={e => setNuevaCat(e.target.value)}
               placeholder="Ej: Lomitos, Bebidas, Postres"
-              style={{ flex: 1, border: '2px solid #e0e0e0', borderRadius: 10, padding: '10px 12px', fontSize: 14, outline: 'none' }} />
-            <button onClick={crearCategoria} style={{ background: '#1D9E75', color: 'white', border: 'none', borderRadius: 10, padding: '10px 20px', fontWeight: 700, cursor: 'pointer' }}>+ Agregar</button>
+              style={{ ...inputStyle, flex: 1 }} />
+            <button onClick={crearCategoria} style={{
+              background: '#22c55e', color: 'white', border: 'none',
+              borderRadius: 10, padding: '10px 18px', fontWeight: 700, cursor: 'pointer', fontSize: 14
+            }}>+ Agregar</button>
           </div>
         </div>
 
         {/* Nuevo producto */}
-        <div style={{ background: 'white', borderRadius: 16, padding: 16, marginBottom: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: mostrarFormProd ? 12 : 0 }}>
-            <h3 style={{ margin: 0, fontSize: 15 }}>Nuevo producto</h3>
-            <button onClick={() => { setMostrarFormProd(!mostrarFormProd); setPreview(null) }} style={{ background: '#1D9E75', color: 'white', border: 'none', borderRadius: 10, padding: '8px 16px', cursor: 'pointer' }}>
+        <div style={{ background: 'white', borderRadius: 14, padding: 16, border: '1px solid #efefef' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: mostrarFormProd ? 14 : 0 }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#999', letterSpacing: 1, textTransform: 'uppercase' }}>Nuevo producto</p>
+            <button onClick={() => { setMostrarFormProd(!mostrarFormProd); setPreview(null) }} style={{
+              background: mostrarFormProd ? '#ef4444' : '#22c55e',
+              color: 'white', border: 'none', borderRadius: 10,
+              padding: '8px 14px', cursor: 'pointer', fontSize: 13, fontWeight: 600
+            }}>
               {mostrarFormProd ? '✕ Cancelar' : '+ Agregar producto'}
             </button>
           </div>
+
           {mostrarFormProd && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <select value={nuevoProducto.categoria_id} onChange={e => setNuevoProducto({ ...nuevoProducto, categoria_id: e.target.value })}
-                style={{ border: '2px solid #e0e0e0', borderRadius: 10, padding: '10px 12px', fontSize: 14, outline: 'none', gridColumn: '1/-1' }}>
+              <select value={nuevoProducto.categoria_id}
+                onChange={e => setNuevoProducto({ ...nuevoProducto, categoria_id: e.target.value })}
+                style={{ ...inputStyle, gridColumn: '1/-1' }}>
                 <option value="">Seleccioná una categoría</option>
                 {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
-              <input value={nuevoProducto.nombre} onChange={e => setNuevoProducto({ ...nuevoProducto, nombre: e.target.value })}
-                placeholder="Nombre del producto"
-                style={{ border: '2px solid #e0e0e0', borderRadius: 10, padding: '10px 12px', fontSize: 14, outline: 'none' }} />
-              <input value={nuevoProducto.precio} onChange={e => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
-                placeholder="Precio en Gs." type="number"
-                style={{ border: '2px solid #e0e0e0', borderRadius: 10, padding: '10px 12px', fontSize: 14, outline: 'none' }} />
-              <input value={nuevoProducto.descripcion} onChange={e => setNuevoProducto({ ...nuevoProducto, descripcion: e.target.value })}
-                placeholder="Descripción (opcional)"
-                style={{ border: '2px solid #e0e0e0', borderRadius: 10, padding: '10px 12px', fontSize: 14, outline: 'none', gridColumn: '1/-1' }} />
 
-              {/* Subida de foto */}
+              <input value={nuevoProducto.nombre}
+                onChange={e => setNuevoProducto({ ...nuevoProducto, nombre: e.target.value })}
+                placeholder="Nombre del producto"
+                style={inputStyle} />
+
+              <input value={nuevoProducto.precio}
+                onChange={e => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
+                placeholder="Precio en Gs." type="number"
+                style={inputStyle} />
+
+              <input value={nuevoProducto.descripcion}
+                onChange={e => setNuevoProducto({ ...nuevoProducto, descripcion: e.target.value })}
+                placeholder="Descripción (opcional)"
+                style={{ ...inputStyle, gridColumn: '1/-1' }} />
+
+              {/* Tiempo de preparación */}
               <div style={{ gridColumn: '1/-1' }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#555', display: 'block', marginBottom: 8 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#555', display: 'block', marginBottom: 6 }}>
+                  ⏱ Tiempo de preparación (minutos)
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <input
+                    type="number" min="1" max="120"
+                    value={nuevoProducto.tiempo_prep}
+                    onChange={e => setNuevoProducto({ ...nuevoProducto, tiempo_prep: e.target.value })}
+                    style={{ ...inputStyle, width: 100 }}
+                  />
+                  <span style={{ fontSize: 12, color: '#999' }}>
+                    min — usado para calcular tiempo de espera del cliente
+                  </span>
+                </div>
+              </div>
+
+              {/* Foto */}
+              <div style={{ gridColumn: '1/-1' }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#555', display: 'block', marginBottom: 8 }}>
                   Foto del producto
                 </label>
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   <label style={{
-                    background: '#f0f0f0', border: '2px dashed #ccc', borderRadius: 12,
-                    padding: '16px 24px', cursor: 'pointer', fontSize: 14, color: '#555',
+                    background: '#f5f5f5', border: '2px dashed #ddd', borderRadius: 12,
+                    padding: '14px 20px', cursor: 'pointer', fontSize: 13, color: '#666',
                     display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0
                   }}>
-                    📷 {subiendo ? 'Subiendo...' : 'Sacar foto / Galería'}
+                    📷 {subiendo ? 'Subiendo...' : 'Foto / Galería'}
                     <input type="file" accept="image/*" capture="environment"
                       style={{ display: 'none' }}
                       onChange={e => e.target.files[0] && subirFoto(e.target.files[0])} />
                   </label>
                   {preview && (
                     <div style={{ position: 'relative' }}>
-                      <img src={preview} alt="preview" style={{ width: 80, height: 80, borderRadius: 10, objectFit: 'cover' }} />
+                      <img src={preview} alt="preview" style={{ width: 72, height: 72, borderRadius: 10, objectFit: 'cover' }} />
                       <button onClick={() => { setPreview(null); setNuevoProducto(prev => ({ ...prev, imagen_url: '' })) }}
-                        style={{ position: 'absolute', top: -6, right: -6, background: '#F44336', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', fontSize: 12 }}>✕</button>
+                        style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', fontSize: 11 }}>✕</button>
                     </div>
                   )}
                 </div>
               </div>
 
               <button onClick={crearProducto} disabled={subiendo} style={{
-                gridColumn: '1/-1', background: subiendo ? '#ccc' : '#1D9E75',
+                gridColumn: '1/-1',
+                background: subiendo ? '#ccc' : '#22c55e',
                 color: 'white', border: 'none', borderRadius: 10,
-                padding: '12px', fontSize: 15, fontWeight: 700, cursor: 'pointer'
+                padding: '12px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
               }}>
                 Guardar producto
               </button>
@@ -166,35 +212,42 @@ export default function Menu() {
           )}
         </div>
 
-        {/* Lista de productos */}
+        {/* Lista de productos por categoría */}
         {categorias.map(cat => (
-          <div key={cat.id} style={{ background: 'white', borderRadius: 16, padding: 16, marginBottom: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <h3 style={{ margin: '0 0 12px', fontSize: 16, color: '#1a1a1a' }}>{cat.nombre}</h3>
-            {cat.productos.length === 0 && <p style={{ color: '#aaa', fontSize: 13 }}>Sin productos todavía</p>}
+          <div key={cat.id} style={{ background: 'white', borderRadius: 14, padding: 16, border: '1px solid #efefef' }}>
+            <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: 15, color: '#111' }}>{cat.nombre}</p>
+            {cat.productos.length === 0 && (
+              <p style={{ color: '#ccc', fontSize: 13 }}>Sin productos todavía</p>
+            )}
             {cat.productos.map(p => (
               <div key={p.id} style={{
-                display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0',
-                borderBottom: '1px solid #f0f0f0', opacity: p.disponible ? 1 : 0.5
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 0', borderBottom: '1px solid #f5f5f5',
+                opacity: p.disponible ? 1 : 0.5
               }}>
                 {p.imagen_url
-                  ? <img src={p.imagen_url} alt={p.nombre} style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                  : <div style={{ width: 56, height: 56, borderRadius: 10, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>🍽</div>
+                  ? <img src={p.imagen_url} alt={p.nombre} style={{ width: 54, height: 54, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                  : <div style={{ width: 54, height: 54, borderRadius: 10, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🍽️</div>
                 }
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{p.nombre}</p>
-                  {p.descripcion && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#888' }}>{p.descripcion}</p>}
-                  <p style={{ margin: '4px 0 0', fontWeight: 700, color: '#1D9E75', fontSize: 15 }}>Gs. {parseInt(p.precio).toLocaleString()}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#111' }}>{p.nombre}</p>
+                  {p.descripcion && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#aaa' }}>{p.descripcion}</p>}
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginTop: 3 }}>
+                    <p style={{ margin: 0, fontWeight: 700, color: '#22c55e', fontSize: 14 }}>Gs. {parseInt(p.precio).toLocaleString()}</p>
+                    <span style={{ fontSize: 11, color: '#aaa' }}>⏱ {p.tiempo_prep || 0} min</span>
+                  </div>
                 </div>
                 <button onClick={() => toggleDisponible(p.id, p.disponible)} style={{
-                  background: p.disponible ? '#E8F5E9' : '#FFEBEE',
-                  color: p.disponible ? '#2E7D32' : '#C62828',
-                  border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+                  background: p.disponible ? '#f0fdf4' : '#fff5f5',
+                  color: p.disponible ? '#16a34a' : '#dc2626',
+                  border: 'none', borderRadius: 8, padding: '6px 12px',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0
                 }}>
                   {p.disponible ? '✓ Disponible' : '✗ Agotado'}
                 </button>
                 <button onClick={() => eliminarProducto(p.id)} style={{
-                  background: '#fff0f0', color: '#F44336', border: 'none',
-                  borderRadius: 8, padding: '6px 10px', fontSize: 16, cursor: 'pointer'
+                  background: '#fff5f5', color: '#ef4444', border: 'none',
+                  borderRadius: 8, padding: '6px 10px', fontSize: 16, cursor: 'pointer', flexShrink: 0
                 }}>🗑</button>
               </div>
             ))}

@@ -4,22 +4,30 @@ import axios from 'axios'
 
 const API = 'https://restaurant-backend-production-1271.up.railway.app'
 
+const METODO_LABEL = {
+  efectivo:  { icon: '💵', label: 'Efectivo' },
+  billetera: { icon: '📱', label: 'Tigo Money' },
+  tarjeta:   { icon: '💳', label: 'Tarjeta' },
+}
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const [pedidos, setPedidos] = useState([])
   const [abierto, setAbierto] = useState(false)
   const [stats, setStats] = useState(null)
-  const [nombre] = useState(localStorage.getItem('nombre') || 'Mi local')
+  const [localInfo, setLocalInfo] = useState(null)
+  const nombre = localStorage.getItem('nombre') || 'Mi local'
   const token = localStorage.getItem('token')
   const local_id = localStorage.getItem('local_id')
+  const slug = localStorage.getItem('slug')
   const wsRef = useRef(null)
-
   const headers = { Authorization: `Bearer ${token}` }
 
   const cargarLocal = async () => {
     try {
       const res = await axios.get(`${API}/locales/mi-local/info`, { headers })
       setAbierto(res.data.abierto)
+      setLocalInfo(res.data)
     } catch (e) { }
   }
 
@@ -57,6 +65,14 @@ export default function Dashboard() {
     } catch (e) { }
   }
 
+  // Cargar info del local (banner, color) desde el menú público
+  const [localPublico, setLocalPublico] = useState(null)
+  useEffect(() => {
+    if (slug) {
+      axios.get(`${API}/locales/${slug}`).then(r => setLocalPublico(r.data)).catch(() => {})
+    }
+  }, [slug])
+
   useEffect(() => {
     cargarLocal()
     cargarPedidos()
@@ -72,141 +88,228 @@ export default function Dashboard() {
         cargarStats()
       }
     }
-
     const interval = setInterval(() => {
       cargarPedidos()
       cargarStats()
     }, 15000)
 
-    return () => {
-      ws.close()
-      clearInterval(interval)
-    }
+    return () => { ws.close(); clearInterval(interval) }
   }, [])
 
   const pendientes = pedidos.filter(p => p.estado === 'pendiente')
   const enPreparacion = pedidos.filter(p => p.estado === 'aceptado')
+  const color = localPublico?.color_primario || '#b91c1c'
+  const banner = localPublico?.banner_url
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
-      {/* Header */}
-      <div style={{ background: '#1a1a2e', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <h1 style={{ color: 'white', margin: 0, fontSize: 18, fontWeight: 700 }}>{nombre}</h1>
-          <p style={{ color: '#888', margin: 0, fontSize: 12 }}>Panel de pedidos</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <button onClick={toggleAbierto} style={{
-            background: abierto ? '#4CAF50' : '#F44336',
-            color: 'white', border: 'none', borderRadius: 20,
-            padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
-          }}>
-            {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
-          </button>
-          <button onClick={() => navigate('/menu')} style={{ background: '#333', color: 'white', border: 'none', borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>Menú</button>
-          <button onClick={() => navigate('/mesas')} style={{ background: '#333', color: 'white', border: 'none', borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>Mesas</button>
-          <button onClick={() => navigate('/stats')} style={{ background: '#333', color: 'white', border: 'none', borderRadius: 20, padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>Stats</button>
+      {/* ── HEADER con banner ── */}
+      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 80 }}>
+        {banner
+          ? <img src={banner} alt="banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color} 0%, ${color}bb 100%)` }} />
+        }
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
+        <div style={{
+          position: 'relative', zIndex: 1,
+          padding: '16px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10
+        }}>
+          <div>
+            <h1 style={{ color: 'white', margin: 0, fontSize: 20, fontWeight: 800, letterSpacing: -0.3 }}>{nombre}</h1>
+            <p style={{ color: 'rgba(255,255,255,0.7)', margin: 0, fontSize: 12 }}>Panel de pedidos</p>
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={toggleAbierto} style={{
+              background: abierto ? '#22c55e' : '#ef4444',
+              color: 'white', border: 'none', borderRadius: 20,
+              padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
+            }}>
+              {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
+            </button>
+            {[
+              { label: 'Menú', path: '/menu' },
+              { label: 'Mesas', path: '/mesas' },
+              { label: 'Stats', path: '/stats' },
+            ].map(b => (
+              <button key={b.path} onClick={() => navigate(b.path)} style={{
+                background: 'rgba(255,255,255,0.15)', color: 'white',
+                border: '1px solid rgba(255,255,255,0.25)',
+                borderRadius: 20, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontWeight: 500
+              }}>{b.label}</button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Stats rápidas */}
+      {/* ── STATS ── */}
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, padding: '16px 20px 0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, padding: '14px 16px 0' }}>
           {[
-            { label: 'Pedidos hoy', value: stats.pedidos_hoy, emoji: '📋' },
-            { label: 'En preparación', value: stats.en_preparacion, emoji: '👨‍🍳' },
-            { label: 'Total hoy', value: `Gs. ${stats.total_hoy?.toLocaleString()}`, emoji: '💰' },
+            { label: 'Pedidos hoy', value: stats.pedidos_hoy, emoji: '📋', accent: '#2196F3' },
+            { label: 'En preparación', value: stats.en_preparacion, emoji: '👨‍🍳', accent: '#FF9800' },
+            { label: 'Total hoy', value: `Gs. ${stats.total_hoy?.toLocaleString()}`, emoji: '💰', accent: '#22c55e' },
           ].map(s => (
-            <div key={s.label} style={{ background: 'white', borderRadius: 16, padding: '16px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <div style={{ fontSize: 24 }}>{s.emoji}</div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: '#1a1a1a' }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{s.label}</div>
+            <div key={s.label} style={{
+              background: 'white', borderRadius: 14, padding: '14px 12px',
+              textAlign: 'center', borderTop: `3px solid ${s.accent}`
+            }}>
+              <div style={{ fontSize: 22, marginBottom: 4 }}>{s.emoji}</div>
+              <div style={{ fontWeight: 800, fontSize: 18, color: '#111' }}>{s.value}</div>
+              <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: 20 }}>
+      {/* ── COLUMNAS ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, padding: '14px 16px' }}>
 
-        {/* Pedidos pendientes */}
+        {/* Pendientes */}
         <div>
-          <h2 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: '#FF9800' }}>
-            ⏳ Nuevos ({pendientes.length})
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#e67e22' }}>⏳ Nuevos</span>
+            {pendientes.length > 0 && (
+              <span style={{ background: '#e67e22', color: 'white', borderRadius: 20, fontSize: 11, fontWeight: 700, padding: '2px 8px' }}>{pendientes.length}</span>
+            )}
+          </div>
+
           {pendientes.length === 0 && (
-            <div style={{ background: 'white', borderRadius: 16, padding: 20, textAlign: 'center', color: '#aaa' }}>
+            <div style={{ background: 'white', borderRadius: 14, padding: '20px', textAlign: 'center', color: '#ccc', fontSize: 13 }}>
               Sin pedidos nuevos
             </div>
           )}
+
           {pendientes.map(p => (
-            <div key={p.id} style={{
-              background: 'white', borderRadius: 16, padding: 16,
-              marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              borderLeft: '4px solid #FF9800'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontWeight: 700, fontSize: 16 }}>Mesa {p.mesa || '—'}</span>
-                <span style={{ fontWeight: 700, color: '#1D9E75' }}>Gs. {parseInt(p.total).toLocaleString()}</span>
-              </div>
-              {p.items.map((item, i) => (
-                <div key={i} style={{ fontSize: 13, color: '#555', marginBottom: 2 }}>
-                  {item.cantidad}x {item.nombre} {item.nota && <span style={{ color: '#888' }}>({item.nota})</span>}
-                </div>
-              ))}
-              {p.nota_general && <div style={{ fontSize: 12, color: '#888', marginTop: 4, fontStyle: 'italic' }}>📝 {p.nota_general}</div>}
-              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button onClick={() => accionPedido(p.id, 'aceptar')} style={{
-                  flex: 1, background: '#4CAF50', color: 'white', border: 'none',
-                  borderRadius: 10, padding: '10px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
-                }}>✓ Aceptar</button>
-                <button onClick={() => accionPedido(p.id, 'cancelar')} style={{
-                  flex: 1, background: '#F44336', color: 'white', border: 'none',
-                  borderRadius: 10, padding: '10px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
-                }}>✗ Rechazar</button>
-              </div>
-            </div>
+            <TarjetaPedido key={p.id} p={p} color={color} tipo="pendiente" onAccion={accionPedido} />
           ))}
         </div>
 
         {/* En preparación */}
         <div>
-          <h2 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: '#2196F3' }}>
-            👨‍🍳 Preparando ({enPreparacion.length})
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#2196F3' }}>👨‍🍳 Preparando</span>
+            {enPreparacion.length > 0 && (
+              <span style={{ background: '#2196F3', color: 'white', borderRadius: 20, fontSize: 11, fontWeight: 700, padding: '2px 8px' }}>{enPreparacion.length}</span>
+            )}
+          </div>
+
           {enPreparacion.length === 0 && (
-            <div style={{ background: 'white', borderRadius: 16, padding: 20, textAlign: 'center', color: '#aaa' }}>
+            <div style={{ background: 'white', borderRadius: 14, padding: '20px', textAlign: 'center', color: '#ccc', fontSize: 13 }}>
               Sin pedidos en preparación
             </div>
           )}
+
           {enPreparacion.map(p => (
-            <div key={p.id} style={{
-              background: 'white', borderRadius: 16, padding: 16,
-              marginBottom: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              borderLeft: '4px solid #2196F3'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontWeight: 700, fontSize: 16 }}>Mesa {p.mesa || '—'}</span>
-                <span style={{ fontWeight: 700, color: '#1D9E75' }}>Gs. {parseInt(p.total).toLocaleString()}</span>
-              </div>
-              {p.items.map((item, i) => (
-                <div key={i} style={{ fontSize: 13, color: '#555', marginBottom: 2 }}>
-                  {item.cantidad}x {item.nombre} {item.nota && <span style={{ color: '#888' }}>({item.nota})</span>}
-                </div>
-              ))}
-              <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                <button onClick={() => accionPedido(p.id, 'listo')} style={{
-                  flex: 1, background: '#4CAF50', color: 'white', border: 'none',
-                  borderRadius: 10, padding: '10px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
-                }}>🍽 Listo</button>
-                <button onClick={() => accionPedido(p.id, 'entregar')} style={{
-                  flex: 1, background: '#9C27B0', color: 'white', border: 'none',
-                  borderRadius: 10, padding: '10px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
-                }}>✓ Entregar</button>
-              </div>
-            </div>
+            <TarjetaPedido key={p.id} p={p} color={color} tipo="preparando" onAccion={accionPedido} />
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+function TarjetaPedido({ p, color, tipo, onAccion }) {
+  const borderColor = tipo === 'pendiente' ? '#e67e22' : '#2196F3'
+  const metodo = METODO_LABEL[p.metodo_pago] || METODO_LABEL.efectivo
+
+  return (
+    <div style={{
+      background: 'white', borderRadius: 14, padding: 14,
+      marginBottom: 10, borderLeft: `4px solid ${borderColor}`,
+      border: `1px solid #efefef`, borderLeftWidth: 4, borderLeftColor: borderColor,
+    }}>
+      {/* Cabecera */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+        <div>
+          <span style={{ fontWeight: 800, fontSize: 16, color: '#111' }}>
+            {p.mesa ? `Mesa ${p.mesa}` : '—'}
+          </span>
+          {p.nombre_cliente && (
+            <span style={{ fontSize: 12, color: '#999', marginLeft: 6 }}>· {p.nombre_cliente}</span>
+          )}
+        </div>
+        <span style={{ fontWeight: 700, color: '#22c55e', fontSize: 15 }}>
+          Gs. {parseInt(p.total).toLocaleString()}
+        </span>
+      </div>
+
+      {/* Items */}
+      <div style={{ marginBottom: 8 }}>
+        {p.items.map((item, i) => (
+          <div key={i} style={{ fontSize: 13, color: '#444', marginBottom: 2, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+            <span style={{ fontWeight: 600 }}>{item.cantidad}×</span>
+            <span>{item.nombre}</span>
+            {item.tiempo_prep > 0 && (
+              <span style={{ fontSize: 10, color: '#aaa', marginLeft: 2 }}>({item.tiempo_prep} min)</span>
+            )}
+            {item.nota && <span style={{ color: '#aaa', fontSize: 12 }}>— {item.nota}</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* Nota general */}
+      {p.nota_general && (
+        <div style={{ fontSize: 12, color: '#888', fontStyle: 'italic', marginBottom: 8, background: '#fafafa', borderRadius: 8, padding: '6px 8px' }}>
+          📝 {p.nota_general}
+        </div>
+      )}
+
+      {/* Método de pago + tiempo */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+        <span style={{
+          fontSize: 11, fontWeight: 600, padding: '3px 8px',
+          borderRadius: 20, background: '#f5f5f5', color: '#555'
+        }}>
+          {metodo.icon} {metodo.label}
+        </span>
+        {tipo === 'pendiente' && p.tiempo_estimado && (
+          <span style={{
+            fontSize: 11, fontWeight: 600, padding: '3px 8px',
+            borderRadius: 20, background: '#fff8e1', color: '#e67e22'
+          }}>
+            ⏱ ~{p.tiempo_estimado} min estimado
+          </span>
+        )}
+        {tipo === 'preparando' && p.tiempo_restante !== null && (
+          <span style={{
+            fontSize: 11, fontWeight: 700, padding: '3px 8px',
+            borderRadius: 20,
+            background: p.tiempo_restante <= 5 ? '#ffebee' : '#e8f5e9',
+            color: p.tiempo_restante <= 5 ? '#e53e3e' : '#22c55e'
+          }}>
+            ⏱ {p.tiempo_restante} min restantes
+          </span>
+        )}
+      </div>
+
+      {/* Botones */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        {tipo === 'pendiente' && (
+          <>
+            <button onClick={() => onAccion(p.id, 'aceptar')} style={{
+              flex: 1, background: '#22c55e', color: 'white', border: 'none',
+              borderRadius: 10, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
+            }}>✓ Aceptar</button>
+            <button onClick={() => onAccion(p.id, 'cancelar')} style={{
+              flex: 1, background: '#ef4444', color: 'white', border: 'none',
+              borderRadius: 10, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
+            }}>✗ Rechazar</button>
+          </>
+        )}
+        {tipo === 'preparando' && (
+          <>
+            <button onClick={() => onAccion(p.id, 'listo')} style={{
+              flex: 1, background: '#22c55e', color: 'white', border: 'none',
+              borderRadius: 10, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
+            }}>🍽 Listo</button>
+            <button onClick={() => onAccion(p.id, 'entregar')} style={{
+              flex: 1, background: '#8b5cf6', color: 'white', border: 'none',
+              borderRadius: 10, padding: '10px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
+            }}>✓ Entregar</button>
+          </>
+        )}
       </div>
     </div>
   )
