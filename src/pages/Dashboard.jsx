@@ -12,9 +12,21 @@ const METODO_LABEL = {
 
 
 // ── Sonidos Web Audio API ─────────────────────────────────────────────────────
+let audioCtx = null
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume()
+  }
+  return audioCtx
+}
+
 function sonarPedidoNuevo() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const ctx = getAudioCtx()
     [[0, 880], [0.15, 1100], [0.3, 1320]].forEach(([t, freq]) => {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
@@ -27,7 +39,7 @@ function sonarPedidoNuevo() {
       osc.start(ctx.currentTime + t)
       osc.stop(ctx.currentTime + t + 0.6)
     })
-  } catch (e) {}
+  } catch (e) { console.log('Audio error:', e) }
 }
 
 export default function Dashboard() {
@@ -42,6 +54,21 @@ export default function Dashboard() {
   const slug = localStorage.getItem('slug')
   const wsRef = useRef(null)
   const headers = { Authorization: `Bearer ${token}` }
+
+  // Inicializar AudioContext con primer toque del usuario
+  useEffect(() => {
+    const init = () => {
+      getAudioCtx()
+      document.removeEventListener('touchstart', init)
+      document.removeEventListener('click', init)
+    }
+    document.addEventListener('touchstart', init)
+    document.addEventListener('click', init)
+    return () => {
+      document.removeEventListener('touchstart', init)
+      document.removeEventListener('click', init)
+    }
+  }, [])
 
   const cargarLocal = async () => {
     try {
