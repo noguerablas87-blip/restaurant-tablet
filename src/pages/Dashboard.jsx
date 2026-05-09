@@ -152,41 +152,47 @@ export default function Dashboard() {
     <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
       {/* ── HEADER con banner ── */}
-      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 80 }}>
+      <div style={{ position: 'relative', overflow: 'hidden', height: 180 }}>
         {banner
-          ? <img src={banner} alt="banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color} 0%, ${color}bb 100%)` }} />
+          ? <img src={banner} alt="banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
+          : <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color} 0%, ${color}99 100%)` }} />
         }
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
-        <div style={{
-          position: 'relative', zIndex: 1,
-          padding: '16px 20px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10
-        }}>
-          <div>
-            <h1 style={{ color: 'white', margin: 0, fontSize: 20, fontWeight: 800, letterSpacing: -0.3 }}>{nombre}</h1>
-            <p style={{ color: 'rgba(255,255,255,0.7)', margin: 0, fontSize: 12 }}>Panel de pedidos</p>
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button onClick={toggleAbierto} style={{
-              background: abierto ? '#22c55e' : '#ef4444',
-              color: 'white', border: 'none', borderRadius: 20,
-              padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
-            }}>
-              {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
-            </button>
-            {[
-              { label: 'Menú', path: '/menu' },
-              { label: 'Mesas', path: '/mesas' },
-              { label: 'Stats', path: '/stats' },
-            ].map(b => (
-              <button key={b.path} onClick={() => navigate(b.path)} style={{
-                background: 'rgba(255,255,255,0.15)', color: 'white',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 20, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontWeight: 500
-              }}>{b.label}</button>
-            ))}
-          </div>
+        {/* Gradiente sutil solo abajo */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.65) 100%)' }} />
+        
+        {/* Barra de navegación arriba */}
+        <div style={{ position: 'relative', zIndex: 1, padding: '14px 20px 0', display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={toggleAbierto} style={{
+            background: abierto ? '#22c55e' : '#ef4444',
+            color: 'white', border: 'none', borderRadius: 20,
+            padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+          }}>
+            {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
+          </button>
+          {[
+            { label: 'Menú', path: '/menu' },
+            { label: 'Mesas', path: '/mesas' },
+            { label: 'Estadísticas', path: '/stats' },
+          ].map(b => (
+            <button key={b.path} onClick={() => navigate(b.path)} style={{
+              background: 'rgba(255,255,255,0.2)', color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: 20, padding: '7px 14px', fontSize: 12,
+              cursor: 'pointer', fontWeight: 600,
+              backdropFilter: 'blur(4px)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}>{b.label}</button>
+          ))}
+        </div>
+
+        {/* Nombre del local abajo */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1, padding: '0 20px 16px' }}>
+          {localPublico?.logo_url && (
+            <img src={localPublico.logo_url} alt="logo" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid white', marginBottom: 6, display: 'block' }} />
+          )}
+          <h1 style={{ color: 'white', margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: -0.4, textShadow: '0 1px 6px rgba(0,0,0,0.5)' }}>{nombre}</h1>
+          <p style={{ color: 'rgba(255,255,255,0.75)', margin: '2px 0 0', fontSize: 12 }}>Panel de pedidos</p>
         </div>
       </div>
 
