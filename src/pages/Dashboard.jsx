@@ -10,6 +10,26 @@ const METODO_LABEL = {
   tarjeta:   { icon: '💳', label: 'Tarjeta' },
 }
 
+
+// ── Sonidos Web Audio API ─────────────────────────────────────────────────────
+function sonarPedidoNuevo() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    [[0, 880], [0.15, 1100], [0.3, 1320]].forEach(([t, freq]) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.type = 'sine'
+      osc.frequency.value = freq
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + t)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.6)
+      osc.start(ctx.currentTime + t)
+      osc.stop(ctx.currentTime + t + 0.6)
+    })
+  } catch (e) {}
+}
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const [pedidos, setPedidos] = useState([])
@@ -83,7 +103,7 @@ export default function Dashboard() {
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data)
       if (data.tipo === 'nuevo_pedido') {
-        try { new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play() } catch (e) { }
+        sonarPedidoNuevo()
         cargarPedidos()
         cargarStats()
       }
