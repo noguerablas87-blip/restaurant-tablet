@@ -23,7 +23,12 @@ export default function Menu() {
   const cargar = async () => {
     try {
       const res = await axios.get(`${API}/menu/${localStorage.getItem('slug') || 'don-carlos'}`)
-      setCategorias(res.data.categorias)
+      // Filtrar productos eliminados
+      const cats = res.data.categorias.map(cat => ({
+        ...cat,
+        productos: cat.productos.filter(p => !p.eliminado)
+      }))
+      setCategorias(cats)
     } catch (e) { }
   }
 
