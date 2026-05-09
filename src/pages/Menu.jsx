@@ -191,7 +191,7 @@ export default function Menu() {
                     display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0
                   }}>
                     📷 {subiendo ? 'Subiendo...' : 'Foto / Galería'}
-                    <input type="file" accept="image/*" capture="environment"
+                    <input type="file" accept="image/*" 
                       style={{ display: 'none' }}
                       onChange={e => e.target.files[0] && subirFoto(e.target.files[0])} />
                   </label>
