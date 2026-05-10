@@ -48,6 +48,7 @@ export default function Dashboard() {
   const [abierto, setAbierto] = useState(false)
   const [stats, setStats] = useState(null)
   const [localInfo, setLocalInfo] = useState(null)
+  const [audioActivado, setAudioActivado] = useState(false)
   const nombre = localStorage.getItem('nombre') || 'Mi local'
   const token = localStorage.getItem('token')
   const local_id = localStorage.getItem('local_id')
@@ -55,20 +56,25 @@ export default function Dashboard() {
   const wsRef = useRef(null)
   const headers = { Authorization: `Bearer ${token}` }
 
-  // Inicializar AudioContext con primer toque del usuario
-  useEffect(() => {
-    const init = () => {
-      getAudioCtx()
-      document.removeEventListener('touchstart', init)
-      document.removeEventListener('click', init)
-    }
-    document.addEventListener('touchstart', init)
-    document.addEventListener('click', init)
-    return () => {
-      document.removeEventListener('touchstart', init)
-      document.removeEventListener('click', init)
-    }
-  }, [])
+  const activarAudio = () => {
+    try {
+      const ctx = getAudioCtx()
+      ctx.resume().then(() => {
+        // Sonar un beep corto de confirmación
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'sine'
+        osc.frequency.value = 880
+        gain.gain.setValueAtTime(0.3, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.3)
+      })
+    } catch(e) {}
+    setAudioActivado(true)
+  }
 
   const cargarLocal = async () => {
     try {
@@ -150,6 +156,39 @@ export default function Dashboard() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
+
+      {/* ── MODAL ACTIVAR SONIDO ── */}
+      {!audioActivado && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 999,
+          background: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24,
+        }}>
+          <div style={{
+            background: 'white', borderRadius: 24, padding: 40,
+            textAlign: 'center', maxWidth: 340, width: '100%'
+          }}>
+            <div style={{ fontSize: 56, marginBottom: 16 }}>🔔</div>
+            <h2 style={{ margin: '0 0 10px', fontSize: 22, fontWeight: 800, color: '#1a1a2e' }}>
+              Activar notificaciones
+            </h2>
+            <p style={{ margin: '0 0 28px', fontSize: 15, color: '#666', lineHeight: 1.6 }}>
+              Tocá el botón para activar el sonido de alerta cuando llegue un pedido nuevo.
+            </p>
+            <button
+              onClick={activarAudio}
+              style={{
+                width: '100%', background: '#b91c1c', color: 'white',
+                border: 'none', borderRadius: 14, padding: '16px',
+                fontSize: 16, fontWeight: 700, cursor: 'pointer'
+              }}
+            >
+              🔔 Activar sonido
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── HEADER con banner ── */}
       <div style={{ position: 'relative', overflow: 'hidden', height: 180 }}>
