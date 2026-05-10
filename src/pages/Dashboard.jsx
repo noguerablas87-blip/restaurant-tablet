@@ -27,17 +27,20 @@ function getAudioCtx() {
 function sonarPedidoNuevo() {
   try {
     const ctx = getAudioCtx()
-    [[0, 880], [0.15, 1100], [0.3, 1320]].forEach(([t, freq]) => {
+    const notas = [[0, 880], [0.18, 1100], [0.36, 1320]]
+    notas.forEach(function(nota) {
+      const t = nota[0]
+      const freq = nota[1]
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
       osc.connect(gain)
       gain.connect(ctx.destination)
       osc.type = 'sine'
       osc.frequency.value = freq
-      gain.gain.setValueAtTime(0.4, ctx.currentTime + t)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.6)
+      gain.gain.setValueAtTime(0.5, ctx.currentTime + t)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.7)
       osc.start(ctx.currentTime + t)
-      osc.stop(ctx.currentTime + t + 0.6)
+      osc.stop(ctx.currentTime + t + 0.7)
     })
   } catch (e) { console.log('Audio error:', e) }
 }
