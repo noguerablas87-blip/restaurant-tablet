@@ -51,7 +51,7 @@ export default function Dashboard() {
   const [abierto, setAbierto] = useState(false)
   const [stats, setStats] = useState(null)
   const [localInfo, setLocalInfo] = useState(null)
-  const [audioActivado, setAudioActivado] = useState(false)
+  const [audioActivado, setAudioActivado] = useState(() => sessionStorage.getItem('audioActivado') === 'true')
   const nombre = localStorage.getItem('nombre') || 'Mi local'
   const token = localStorage.getItem('token')
   const local_id = localStorage.getItem('local_id')
@@ -76,6 +76,7 @@ export default function Dashboard() {
         osc.stop(ctx.currentTime + 0.3)
       })
     } catch(e) {}
+    sessionStorage.setItem('audioActivado', 'true')
     setAudioActivado(true)
   }
 
