@@ -119,7 +119,13 @@ export default function Dashboard() {
       await axios.patch(`${API}/pedidos/${id}/${accion}`, {}, { headers })
       cargarPedidos()
       cargarStats()
-    } catch (e) { }
+    } catch (e) {
+      if (e.response?.status === 400) {
+        alert('⚠️ Este pedido fue cancelado por el cliente.')
+        cargarPedidos()
+        cargarStats()
+      }
+    }
   }
 
   // Cargar info del local (banner, color) desde el menú público
@@ -148,7 +154,7 @@ export default function Dashboard() {
     const interval = setInterval(() => {
       cargarPedidos()
       cargarStats()
-    }, 15000)
+    }, 5000)
 
     return () => { ws.close(); clearInterval(interval) }
   }, [])
