@@ -259,7 +259,7 @@ function TarjetaPedido({ p, color, tipo, onAccion }) {
             {p.mesa ? `Mesa ${p.mesa}` : '—'}
           </span>
           {p.numero_diario && (
-            <span style={{ fontSize: 11, color: '#444', marginLeft: 8 }}>#${p.numero_diario} del día</span>
+            <span style={{ fontSize: 11, color: '#444', marginLeft: 8 }}>#{p.numero_diario} del día</span>
           )}
           {p.nombre_cliente && (
             <span style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>· {p.nombre_cliente}</span>

@@ -154,7 +154,7 @@ export default function Stats() {
         doc.setTextColor(...negro)
         doc.setFontSize(8.5)
         doc.setFont('helvetica', 'normal')
-        doc.text(`#${p.pedido_id}`, 18, y + 5)
+        doc.text(`#${p.numero_diario || p.pedido_id}`, 18, y + 5)
         doc.text(p.creado_en || '', 28, y + 5)
         doc.text(p.mesa ? `Mesa ${p.mesa}` : '—', 80, y + 5)
 
@@ -272,7 +272,7 @@ export default function Stats() {
                 <div key={p.pedido_id} style={{ padding: '10px 0', borderBottom: '1px solid #f5f5f5' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                     <div>
-                      <span style={{ fontWeight: 700, fontSize: 13 }}>#{p.pedido_id}</span>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>#{p.numero_diario || p.pedido_id}</span>
                       {p.mesa && <span style={{ fontSize: 12, color: '#888', marginLeft: 6 }}>Mesa {p.mesa}</span>}
                       {p.nombre_cliente && <span style={{ fontSize: 12, color: '#888', marginLeft: 6 }}>· {p.nombre_cliente}</span>}
                     </div>
