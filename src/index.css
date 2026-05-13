@@ -1,20 +1,7 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-html, body {
-  margin: 0;
-  padding: 0;
-  background: #f0f2f5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  width: 100%;
-  min-height: 100svh;
-}
-
-button, input, select, textarea {
-  font-family: inherit;
-}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #111; -webkit-font-smoothing: antialiased; }
+#root { width: 100%; min-height: 100svh; }
+button, input, select, textarea { font-family: inherit; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
