@@ -158,6 +158,7 @@ export default function Dashboard() {
         <div style={{ position: 'relative', zIndex: 1, padding: '16px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Toggle abierto/cerrado */}
           <button onClick={toggleAbierto} style={{
+            position: 'relative', zIndex: 201,
             background: abierto ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)',
             color: abierto ? '#22c55e' : '#ef4444',
             border: `1.5px solid ${abierto ? '#22c55e' : '#ef4444'}`,
@@ -169,19 +170,22 @@ export default function Dashboard() {
           </button>
 
           {/* Menú 3 puntitos */}
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', zIndex: 200 }}>
+            {menuAbierto && (
+              <div onClick={() => setMenuAbierto(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
+            )}
             <button
               onClick={() => setMenuAbierto(m => !m)}
-              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', color: 'white', fontSize: 20, fontWeight: 700 }}
+              style={{ position: 'relative', zIndex: 201, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 42, height: 42, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', color: 'white', fontSize: 22, fontWeight: 700 }}
             >⋮</button>
             {menuAbierto && (
-              <div style={{ position: 'absolute', right: 0, top: 48, background: '#1e1e1e', border: '1px solid #333', borderRadius: 16, overflow: 'hidden', minWidth: 180, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 100 }}>
-                {[{ label: '📋 Menú', path: '/menu' }, { label: '🪑 Mesas', path: '/mesas' }, { label: '📊 Estadísticas', path: '/stats' }].map((b, i) => (
+              <div style={{ position: 'absolute', right: 0, top: 50, background: '#1e1e1e', border: '1px solid #333', borderRadius: 16, overflow: 'hidden', minWidth: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 201 }}>
+                {[{ label: '📋  Menú', path: '/menu' }, { label: '🪑  Mesas', path: '/mesas' }, { label: '📊  Estadísticas', path: '/stats' }].map((b, i) => (
                   <button key={b.path} onClick={() => { navigate(b.path); setMenuAbierto(false) }} style={{
                     width: '100%', background: 'transparent', border: 'none',
                     borderBottom: i < 2 ? '1px solid #2a2a2a' : 'none',
-                    padding: '14px 20px', fontSize: 14, fontWeight: 600,
-                    color: 'white', cursor: 'pointer', textAlign: 'left',
+                    padding: '16px 22px', fontSize: 15, fontWeight: 600,
+                    color: 'white', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit'
                   }}>{b.label}</button>
                 ))}
               </div>
