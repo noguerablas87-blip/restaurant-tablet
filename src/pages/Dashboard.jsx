@@ -40,6 +40,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [localPublico, setLocalPublico] = useState(null)
   const [audioActivado, setAudioActivado] = useState(() => sessionStorage.getItem('audioActivado') === 'true')
+  const [menuAbierto, setMenuAbierto] = useState(false)
   const nombre = localStorage.getItem('nombre') || 'Mi local'
   const token = localStorage.getItem('token')
   const local_id = localStorage.getItem('local_id')
@@ -146,66 +147,82 @@ export default function Dashboard() {
       )}
 
       {/* ── HEADER ── */}
-      <div style={{ position: 'relative', overflow: 'hidden', height: 220 }}>
+      <div style={{ position: 'relative', overflow: 'hidden', height: 220, borderRadius: '0 0 28px 28px' }}>
         {banner
           ? <img src={banner} alt="banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
           : <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color}88 0%, #111 100%)` }} />
         }
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.8) 100%)' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%)' }} />
 
         {/* Nav */}
-        <div style={{ position: 'relative', zIndex: 1, padding: '16px 20px 0', display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', zIndex: 1, padding: '16px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {/* Toggle abierto/cerrado */}
           <button onClick={toggleAbierto} style={{
-            background: abierto ? '#22c55e' : '#ef4444',
-            color: 'white', border: 'none', borderRadius: 20,
-            padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            background: abierto ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)',
+            color: abierto ? '#22c55e' : '#ef4444',
+            border: `1.5px solid ${abierto ? '#22c55e' : '#ef4444'}`,
+            borderRadius: 30, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: 6,
           }}>
-            {abierto ? '● Abierto' : '● Cerrado'}
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: abierto ? '#22c55e' : '#ef4444', display: 'inline-block' }}/>
+            {abierto ? 'Abierto' : 'Cerrado'}
           </button>
-          {[{ label: 'Menú', path: '/menu' }, { label: 'Mesas', path: '/mesas' }, { label: 'Estadísticas', path: '/stats' }].map(b => (
-            <button key={b.path} onClick={() => navigate(b.path)} style={{
-              background: 'rgba(255,255,255,0.12)', color: 'white',
-              border: '1px solid rgba(255,255,255,0.2)', borderRadius: 20,
-              padding: '8px 16px', fontSize: 13, cursor: 'pointer', fontWeight: 600,
-              backdropFilter: 'blur(8px)',
-            }}>{b.label}</button>
-          ))}
+
+          {/* Menú 3 puntitos */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setMenuAbierto(m => !m)}
+              style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 40, height: 40, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', color: 'white', fontSize: 20, fontWeight: 700 }}
+            >⋮</button>
+            {menuAbierto && (
+              <div style={{ position: 'absolute', right: 0, top: 48, background: '#1e1e1e', border: '1px solid #333', borderRadius: 16, overflow: 'hidden', minWidth: 180, boxShadow: '0 8px 32px rgba(0,0,0,0.5)', zIndex: 100 }}>
+                {[{ label: '📋 Menú', path: '/menu' }, { label: '🪑 Mesas', path: '/mesas' }, { label: '📊 Estadísticas', path: '/stats' }].map((b, i) => (
+                  <button key={b.path} onClick={() => { navigate(b.path); setMenuAbierto(false) }} style={{
+                    width: '100%', background: 'transparent', border: 'none',
+                    borderBottom: i < 2 ? '1px solid #2a2a2a' : 'none',
+                    padding: '14px 20px', fontSize: 14, fontWeight: 600,
+                    color: 'white', cursor: 'pointer', textAlign: 'left',
+                  }}>{b.label}</button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Nombre */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1, padding: '0 24px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1, padding: '0 24px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
           {localPublico?.logo_url && (
-            <img src={localPublico.logo_url} alt="logo" style={{ width: 52, height: 52, borderRadius: 12, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.3)', flexShrink: 0 }} />
+            <img src={localPublico.logo_url} alt="logo" style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.25)', flexShrink: 0 }} />
           )}
           <div>
-            <h1 style={{ color: 'white', margin: 0, fontSize: 26, fontWeight: 900, letterSpacing: -0.5, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{nombre}</h1>
-            <p style={{ color: 'rgba(255,255,255,0.6)', margin: '2px 0 0', fontSize: 13 }}>Panel de pedidos · Valmai</p>
+            <h1 style={{ color: 'white', margin: 0, fontSize: 28, fontWeight: 900, letterSpacing: -0.5, textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{nombre}</h1>
+            <p style={{ color: 'rgba(255,255,255,0.55)', margin: '2px 0 0', fontSize: 13 }}>Panel de pedidos · Valmai</p>
           </div>
         </div>
       </div>
 
       {/* ── STATS ── */}
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#222', borderBottom: '1px solid #222' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, padding: '16px 16px 0' }}>
           {[
-            { label: 'Pedidos hoy', value: stats.pedidos_hoy, icon: '📋' },
-            { label: 'En preparación', value: stats.en_preparacion, icon: '👨‍🍳' },
-            { label: 'Total hoy', value: `Gs. ${stats.total_hoy?.toLocaleString()}`, icon: '💰' },
+            { label: 'Pedidos hoy', value: stats.pedidos_hoy, icon: '📋', color: '#3b82f6' },
+            { label: 'En preparación', value: stats.en_preparacion, icon: '👨‍🍳', color: '#f59e0b' },
+            { label: 'Total hoy', value: `Gs. ${stats.total_hoy?.toLocaleString()}`, icon: '💰', color: '#22c55e' },
           ].map((s, i) => (
-            <div key={s.label} style={{ background: '#1a1a1a', padding: '16px 12px', textAlign: 'center' }}>
-              <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
-              <div style={{ fontWeight: 800, fontSize: 20, color: 'white' }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>{s.label}</div>
+            <div key={s.label} style={{ background: '#1a1a1a', borderRadius: 18, padding: '16px 12px', textAlign: 'center', border: '1px solid #2a2a2a' }}>
+              <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
+              <div style={{ fontWeight: 800, fontSize: 22, color: s.color }}>{s.value}</div>
+              <div style={{ fontSize: 11, color: '#555', marginTop: 4 }}>{s.label}</div>
             </div>
           ))}
         </div>
       )}
 
       {/* ── COLUMNAS ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1, background: '#222', minHeight: 'calc(100vh - 320px)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '12px 16px 24px', minHeight: 'calc(100vh - 320px)' }}>
 
         {/* Pendientes */}
-        <div style={{ background: '#111', padding: 16 }}>
+        <div style={{ background: '#1a1a1a', padding: 16, borderRadius: 20, border: '1px solid #2a2a2a' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b', letterSpacing: 0.5 }}>NUEVOS</span>
@@ -222,7 +239,7 @@ export default function Dashboard() {
         </div>
 
         {/* Preparando */}
-        <div style={{ background: '#0f0f0f', padding: 16, borderLeft: '1px solid #222' }}>
+        <div style={{ background: '#1a1a1a', padding: 16, borderRadius: 20, border: '1px solid #2a2a2a' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: '#3b82f6', letterSpacing: 0.5 }}>PREPARANDO</span>
