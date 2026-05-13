@@ -40,7 +40,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [localPublico, setLocalPublico] = useState(null)
   const [audioActivado, setAudioActivado] = useState(() => sessionStorage.getItem('audioActivado') === 'true')
-  const [menuAbierto, setMenuAbierto] = useState(false)
   const nombre = localStorage.getItem('nombre') || 'Mi local'
   const token = localStorage.getItem('token')
   const local_id = localStorage.getItem('local_id')
@@ -155,46 +154,25 @@ export default function Dashboard() {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%)' }} />
 
         {/* Nav */}
-        <div style={{ position: 'relative', zIndex: 1, padding: '16px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Toggle abierto/cerrado */}
-          <button onClick={() => { setMenuAbierto(false); toggleAbierto() }} style={{
-            position: 'relative', zIndex: 201,
-            background: abierto ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)',
-            color: abierto ? '#22c55e' : '#ef4444',
-            border: `2px solid ${abierto ? '#22c55e' : '#ef4444'}`,
-            borderRadius: 30, padding: '8px 18px', fontSize: 14, fontWeight: 800, cursor: 'pointer',
-            backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: 8,
-            fontFamily: 'inherit',
+        <div style={{ position: 'relative', zIndex: 1, padding: '16px 20px 0', display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={toggleAbierto} style={{
+            background: abierto ? '#22c55e' : '#ef4444',
+            color: 'white', border: 'none', borderRadius: 20,
+            padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
           }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: abierto ? '#22c55e' : '#ef4444', display: 'inline-block', flexShrink: 0 }}/>
-            {abierto ? '● Abierto' : '● Cerrado'}
+            {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
           </button>
-
-          {/* Menú 3 puntitos */}
-          <div style={{ position: 'relative', zIndex: 200 }}>
-            {menuAbierto && (
-              <div onClick={() => setMenuAbierto(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
-            )}
-            <button
-              onClick={() => setMenuAbierto(m => !m)}
-              style={{ position: 'relative', zIndex: 201, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 42, height: 42, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', color: 'white', fontSize: 22, fontWeight: 700 }}
-            >⋮</button>
-            {menuAbierto && (
-              <div style={{ position: 'absolute', right: 0, top: 50, background: '#1e1e1e', border: '1px solid #333', borderRadius: 16, overflow: 'hidden', minWidth: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 201 }}>
-                {[{ label: '📋  Menú', path: '/menu' }, { label: '🪑  Mesas', path: '/mesas' }, { label: '📊  Estadísticas', path: '/stats' }].map((b, i) => (
-                  <button key={b.path} onClick={() => { navigate(b.path); setMenuAbierto(false) }} style={{
-                    width: '100%', background: 'transparent', border: 'none',
-                    borderBottom: i < 2 ? '1px solid #2a2a2a' : 'none',
-                    padding: '16px 22px', fontSize: 15, fontWeight: 600,
-                    color: 'white', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit'
-                  }}>{b.label}</button>
-                ))}
-              </div>
-            )}
-          </div>
+          {[{ label: 'Menú', path: '/menu' }, { label: 'Mesas', path: '/mesas' }, { label: 'Estadísticas', path: '/stats' }].map(b => (
+            <button key={b.path} onClick={() => navigate(b.path)} style={{
+              background: 'rgba(255,255,255,0.2)', color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)', borderRadius: 20,
+              padding: '8px 14px', fontSize: 12, cursor: 'pointer', fontWeight: 600,
+              backdropFilter: 'blur(4px)', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}>{b.label}</button>
+          ))}
         </div>
-
-        {/* Nombre */}
+                {/* Nombre */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1, padding: '0 24px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
           {localPublico?.logo_url && (
             <img src={localPublico.logo_url} alt="logo" style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.25)', flexShrink: 0 }} />
