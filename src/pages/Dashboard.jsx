@@ -157,16 +157,17 @@ export default function Dashboard() {
         {/* Nav */}
         <div style={{ position: 'relative', zIndex: 1, padding: '16px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Toggle abierto/cerrado */}
-          <button onClick={toggleAbierto} style={{
+          <button onClick={() => { setMenuAbierto(false); toggleAbierto() }} style={{
             position: 'relative', zIndex: 201,
-            background: abierto ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)',
+            background: abierto ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)',
             color: abierto ? '#22c55e' : '#ef4444',
-            border: `1.5px solid ${abierto ? '#22c55e' : '#ef4444'}`,
-            borderRadius: 30, padding: '7px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-            backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: 6,
+            border: `2px solid ${abierto ? '#22c55e' : '#ef4444'}`,
+            borderRadius: 30, padding: '8px 18px', fontSize: 14, fontWeight: 800, cursor: 'pointer',
+            backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: 8,
+            fontFamily: 'inherit',
           }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: abierto ? '#22c55e' : '#ef4444', display: 'inline-block' }}/>
-            {abierto ? 'Abierto' : 'Cerrado'}
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: abierto ? '#22c55e' : '#ef4444', display: 'inline-block', flexShrink: 0 }}/>
+            {abierto ? '● Abierto' : '● Cerrado'}
           </button>
 
           {/* Menú 3 puntitos */}
@@ -209,11 +210,11 @@ export default function Dashboard() {
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, padding: '16px 16px 0' }}>
           {[
-            { label: 'Pedidos hoy', value: stats.pedidos_hoy, icon: '📋', color: '#3b82f6' },
-            { label: 'En preparación', value: stats.en_preparacion, icon: '👨‍🍳', color: '#f59e0b' },
-            { label: 'Total hoy', value: `Gs. ${stats.total_hoy?.toLocaleString()}`, icon: '💰', color: '#22c55e' },
+            { label: 'Pedidos hoy', value: stats.pedidos_hoy, icon: '📋', color: '#3b82f6', path: null },
+            { label: 'En preparación', value: stats.en_preparacion, icon: '👨‍🍳', color: '#f59e0b', path: null },
+            { label: 'Total hoy', value: `Gs. ${stats.total_hoy?.toLocaleString()}`, icon: '💰', color: '#22c55e', path: '/stats' },
           ].map((s, i) => (
-            <div key={s.label} style={{ background: '#1a1a1a', borderRadius: 18, padding: '16px 12px', textAlign: 'center', border: '1px solid #2a2a2a' }}>
+            <div key={s.label} onClick={() => s.path && navigate(s.path)} style={{ background: '#1a1a1a', borderRadius: 18, padding: '16px 12px', textAlign: 'center', border: '1px solid #2a2a2a', cursor: s.path ? 'pointer' : 'default' }}>
               <div style={{ fontSize: 22, marginBottom: 6 }}>{s.icon}</div>
               <div style={{ fontWeight: 800, fontSize: 22, color: s.color }}>{s.value}</div>
               <div style={{ fontSize: 11, color: '#555', marginTop: 4 }}>{s.label}</div>
