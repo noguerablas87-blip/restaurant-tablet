@@ -40,7 +40,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [localPublico, setLocalPublico] = useState(null)
   const [audioActivado, setAudioActivado] = useState(() => sessionStorage.getItem('audioActivado') === 'true')
-  const [menuAbierto, setMenuAbierto] = useState(false)
   const nombre = localStorage.getItem('nombre') || 'Mi local'
   const token = localStorage.getItem('token')
   const local_id = localStorage.getItem('local_id')
@@ -62,16 +61,6 @@ export default function Dashboard() {
     } catch(e) {}
     sessionStorage.setItem('audioActivado', 'true')
     setAudioActivado(true)
-  }
-
-  const [entregados, setEntregados] = useState([])
-
-  const cargarEntregados = async () => {
-    try {
-      const hoy = new Date().toISOString().split('T')[0]
-      const res = await axios.get(`${API}/locales/mi-local/reporte?desde=${hoy}&hasta=${hoy}`, { headers })
-      setEntregados(res.data.pedidos || [])
-    } catch (e) {}
   }
 
   const cargarPedidos = async () => {
@@ -121,14 +110,14 @@ export default function Dashboard() {
   }, [slug])
 
   useEffect(() => {
-    cargarLocal(); cargarPedidos(); cargarStats(); cargarEntregados()
+    cargarLocal(); cargarPedidos(); cargarStats()
     const ws = new WebSocket(`wss://restaurant-backend-production-1271.up.railway.app/pedidos/ws/${local_id}`)
     wsRef.current = ws
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data)
       if (data.tipo === 'nuevo_pedido') { sonarPedidoNuevo(); cargarPedidos(); cargarStats() }
     }
-    const interval = setInterval(() => { cargarPedidos(); cargarStats(); cargarEntregados() }, 5000)
+    const interval = setInterval(() => { cargarPedidos(); cargarStats() }, 5000)
     return () => { ws.close(); clearInterval(interval) }
   }, [])
 
@@ -140,7 +129,7 @@ export default function Dashboard() {
   return (
     <div style={{ minHeight: '100vh', background: '#111', fontFamily: "'Segoe UI', system-ui, sans-serif", color: 'white' }}>
 
-      {/* ── MODAL ACTIVAR SONIDO ── */}
+      {/* MODAL ACTIVAR SONIDO */}
       {!audioActivado && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 999, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
           <div style={{ background: '#1e1e1e', borderRadius: 24, padding: 40, textAlign: 'center', maxWidth: 340, width: '100%', border: '1px solid #2a2a2a' }}>
@@ -156,55 +145,31 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <div style={{ position: 'relative', overflow: 'hidden', height: 220, borderRadius: '0 0 28px 28px' }}>
         {banner
           ? <img src={banner} alt="banner" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
           : <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${color}88 0%, #111 100%)` }} />
         }
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%)' }} />
-
-        {/* Nav */}
-        <div style={{ position: 'relative', zIndex: 1, padding: '16px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {/* Toggle abierto/cerrado */}
-          <button onClick={() => { setMenuAbierto(false); toggleAbierto() }} style={{
-            position: 'relative', zIndex: 201,
-            background: abierto ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)',
-            color: abierto ? '#22c55e' : '#ef4444',
-            border: `2px solid ${abierto ? '#22c55e' : '#ef4444'}`,
-            borderRadius: 30, padding: '8px 18px', fontSize: 14, fontWeight: 800, cursor: 'pointer',
-            backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', gap: 8,
-            fontFamily: 'inherit',
+        <div style={{ position: 'relative', zIndex: 1, padding: '16px 20px 0', display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={toggleAbierto} style={{
+            background: abierto ? '#22c55e' : '#ef4444',
+            color: 'white', border: 'none', borderRadius: 20,
+            padding: '8px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
           }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: abierto ? '#22c55e' : '#ef4444', display: 'inline-block', flexShrink: 0 }}/>
-            {abierto ? '● Abierto' : '● Cerrado'}
+            {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
           </button>
-
-          {/* Menú 3 puntitos */}
-          <div style={{ position: 'relative', zIndex: 200 }}>
-            {menuAbierto && (
-              <div onClick={() => setMenuAbierto(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
-            )}
-            <button
-              onClick={() => setMenuAbierto(m => !m)}
-              style={{ position: 'relative', zIndex: 201, background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', width: 42, height: 42, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', color: 'white', fontSize: 22, fontWeight: 700 }}
-            >⋮</button>
-            {menuAbierto && (
-              <div style={{ position: 'absolute', right: 0, top: 50, background: '#1e1e1e', border: '1px solid #333', borderRadius: 16, overflow: 'hidden', minWidth: 200, boxShadow: '0 8px 32px rgba(0,0,0,0.6)', zIndex: 201 }}>
-                {[{ label: '📋  Menú', path: '/menu' }, { label: '🪑  Mesas', path: '/mesas' }, { label: '📊  Estadísticas', path: '/stats' }].map((b, i) => (
-                  <button key={b.path} onClick={() => { navigate(b.path); setMenuAbierto(false) }} style={{
-                    width: '100%', background: 'transparent', border: 'none',
-                    borderBottom: i < 2 ? '1px solid #2a2a2a' : 'none',
-                    padding: '16px 22px', fontSize: 15, fontWeight: 600,
-                    color: 'white', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit'
-                  }}>{b.label}</button>
-                ))}
-              </div>
-            )}
-          </div>
+          {[{ label: 'Menú', path: '/menu' }, { label: 'Mesas', path: '/mesas' }, { label: 'Estadísticas', path: '/stats' }].map(b => (
+            <button key={b.path} onClick={() => navigate(b.path)} style={{
+              background: 'rgba(255,255,255,0.2)', color: 'white',
+              border: '1px solid rgba(255,255,255,0.3)', borderRadius: 20,
+              padding: '8px 14px', fontSize: 12, cursor: 'pointer', fontWeight: 600,
+              backdropFilter: 'blur(4px)', boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            }}>{b.label}</button>
+          ))}
         </div>
-
-        {/* Nombre */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1, padding: '0 24px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
           {localPublico?.logo_url && (
             <img src={localPublico.logo_url} alt="logo" style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover', border: '2px solid rgba(255,255,255,0.25)', flexShrink: 0 }} />
@@ -216,7 +181,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── STATS ── */}
+      {/* STATS */}
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, padding: '16px 16px 0' }}>
           {[
@@ -233,10 +198,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ── COLUMNAS ── */}
+      {/* COLUMNAS */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '12px 16px 24px', minHeight: 'calc(100vh - 320px)' }}>
-
-        {/* Pendientes */}
         <div style={{ background: '#1a1a1a', padding: 16, borderRadius: 20, border: '1px solid #2a2a2a' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
@@ -246,14 +209,10 @@ export default function Dashboard() {
             )}
           </div>
           {pendientes.length === 0 && (
-            <div style={{ background: '#1a1a1a', borderRadius: 14, padding: '24px', textAlign: 'center', color: '#333', fontSize: 13, border: '1px solid #222' }}>
-              Sin pedidos nuevos
-            </div>
+            <div style={{ background: '#1a1a1a', borderRadius: 14, padding: '24px', textAlign: 'center', color: '#333', fontSize: 13, border: '1px solid #222' }}>Sin pedidos nuevos</div>
           )}
           {pendientes.map(p => <TarjetaPedido key={p.id} p={p} color={color} tipo="pendiente" onAccion={accionPedido} />)}
         </div>
-
-        {/* Preparando */}
         <div style={{ background: '#1a1a1a', padding: 16, borderRadius: 20, border: '1px solid #2a2a2a' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }} />
@@ -263,42 +222,11 @@ export default function Dashboard() {
             )}
           </div>
           {enPreparacion.length === 0 && (
-            <div style={{ background: '#1a1a1a', borderRadius: 14, padding: '24px', textAlign: 'center', color: '#333', fontSize: 13, border: '1px solid #222' }}>
-              Sin pedidos en preparación
-            </div>
+            <div style={{ background: '#1a1a1a', borderRadius: 14, padding: '24px', textAlign: 'center', color: '#333', fontSize: 13, border: '1px solid #222' }}>Sin pedidos en preparación</div>
           )}
           {enPreparacion.map(p => <TarjetaPedido key={p.id} p={p} color={color} tipo="preparando" onAccion={accionPedido} />)}
         </div>
       </div>
-
-      {/* ENTREGADOS HOY */}
-      {entregados.length > 0 && (
-        <div style={{ padding: '0 16px 24px' }}>
-          <div style={{ background: '#1a1a1a', padding: 16, borderRadius: 20, border: '1px solid #2a2a2a' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#22c55e', letterSpacing: 0.5 }}>ENTREGADOS HOY</span>
-              <span style={{ background: '#22c55e', color: '#000', borderRadius: 20, fontSize: 11, fontWeight: 800, padding: '2px 8px', marginLeft: 2 }}>{entregados.length}</span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {entregados.map(p => (
-                <div key={p.pedido_id} style={{ background: '#111', borderRadius: 12, padding: '10px 12px', border: '1px solid #1a2a1a', borderLeft: '3px solid #22c55e' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: 'white' }}>
-                      {p.mesa ? `Mesa ${p.mesa}` : p.tipo === 'delivery' ? '🛵 Delivery' : p.tipo === 'retiro' ? '🏪 Retiro' : '—'}
-                    </span>
-                    <span style={{ fontWeight: 700, color: '#22c55e', fontSize: 13 }}>Gs. {p.total?.toLocaleString()}</span>
-                  </div>
-                  {p.nombre_cliente && <p style={{ margin: '0 0 4px', fontSize: 11, color: '#555' }}>{p.nombre_cliente}</p>}
-                  <p style={{ margin: 0, fontSize: 11, color: '#444' }}>
-                    {p.items?.map((item, i) => `${item.cantidad}× ${item.nombre}`).join(', ')}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -308,19 +236,16 @@ function TarjetaPedido({ p, color, tipo, onAccion }) {
   const accentColor = tipo === 'pendiente' ? '#f59e0b' : '#3b82f6'
 
   return (
-    <div style={{
-      background: '#1a1a1a', borderRadius: 16, padding: 16,
-      marginBottom: 10, border: `1px solid #2a2a2a`,
-      borderLeft: `3px solid ${accentColor}`,
-    }}>
+    <div style={{ background: '#1a1a1a', borderRadius: 16, padding: 16, marginBottom: 10, border: '1px solid #2a2a2a', borderLeft: `3px solid ${accentColor}` }}>
+
       {/* Cabecera */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
         <div>
           <span style={{ fontWeight: 800, fontSize: 18, color: 'white' }}>
-            {p.mesa ? `Mesa ${p.mesa}` : '—'}
+            {p.tipo === 'delivery' ? '🛵 Delivery' : p.tipo === 'retiro' ? '🏪 Retiro' : p.mesa ? `Mesa ${p.mesa}` : '—'}
           </span>
           {p.numero_diario && (
-            <span style={{ fontSize: 11, color: '#444', marginLeft: 8 }}>#${p.numero_diario} del día</span>
+            <span style={{ fontSize: 11, color: '#444', marginLeft: 8 }}>#{p.numero_diario} del día</span>
           )}
           {p.nombre_cliente && (
             <span style={{ fontSize: 12, color: '#666', marginLeft: 8 }}>· {p.nombre_cliente}</span>
@@ -330,6 +255,18 @@ function TarjetaPedido({ p, color, tipo, onAccion }) {
           Gs. {parseInt(p.total).toLocaleString()}
         </span>
       </div>
+
+      {/* Badge delivery/retiro con direccion */}
+      {p.tipo === 'delivery' && p.direccion_entrega && (
+        <div style={{ background: '#1a1000', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 12, color: '#f59e0b' }}>
+          📍 {p.direccion_entrega}{p.telefono_cliente ? ` · 📞 ${p.telefono_cliente}` : ''}
+        </div>
+      )}
+      {p.tipo === 'retiro' && (
+        <div style={{ background: '#001a0a', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 12, color: '#22c55e' }}>
+          🏪 Para retirar{p.telefono_cliente ? ` · 📞 ${p.telefono_cliente}` : ''}
+        </div>
+      )}
 
       {/* Items */}
       <div style={{ marginBottom: 10, background: '#111', borderRadius: 10, padding: '10px 12px' }}>
@@ -376,26 +313,14 @@ function TarjetaPedido({ p, color, tipo, onAccion }) {
       <div style={{ display: 'flex', gap: 8 }}>
         {tipo === 'pendiente' && (
           <>
-            <button onClick={() => onAccion(p.id, 'aceptar')} style={{
-              flex: 1, background: '#15803d', color: 'white', border: 'none',
-              borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
-            }}>✓ Aceptar</button>
-            <button onClick={() => onAccion(p.id, 'cancelar')} style={{
-              flex: 1, background: '#7f1d1d', color: 'white', border: 'none',
-              borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
-            }}>✗ Rechazar</button>
+            <button onClick={() => onAccion(p.id, 'aceptar')} style={{ flex: 1, background: '#15803d', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>✓ Aceptar</button>
+            <button onClick={() => onAccion(p.id, 'cancelar')} style={{ flex: 1, background: '#7f1d1d', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>✗ Rechazar</button>
           </>
         )}
         {tipo === 'preparando' && (
           <>
-            <button onClick={() => onAccion(p.id, 'listo')} style={{
-              flex: 1, background: '#15803d', color: 'white', border: 'none',
-              borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
-            }}>🍽 Listo</button>
-            <button onClick={() => onAccion(p.id, 'entregar')} style={{
-              flex: 1, background: '#1e3a5f', color: 'white', border: 'none',
-              borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer'
-            }}>✓ Entregar</button>
+            <button onClick={() => onAccion(p.id, 'listo')} style={{ flex: 1, background: '#15803d', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>🍽 Listo</button>
+            <button onClick={() => onAccion(p.id, 'entregar')} style={{ flex: 1, background: '#1e3a5f', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>✓ Entregar</button>
           </>
         )}
       </div>
