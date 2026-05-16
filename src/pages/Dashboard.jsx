@@ -270,7 +270,6 @@ export default function Dashboard() {
           {enPreparacion.map(p => <TarjetaPedido key={p.id} p={p} color={color} tipo="preparando" onAccion={accionPedido} />)}
         </div>
       </div>
-    </div>
 
       {/* ENTREGADOS HOY */}
       {entregados.length > 0 && (
