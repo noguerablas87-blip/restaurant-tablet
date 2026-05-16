@@ -36,6 +36,7 @@ function sonarPedidoNuevo() {
 export default function Dashboard() {
   const navigate = useNavigate()
   const [pedidos, setPedidos] = useState([])
+  const [entregados, setEntregados] = useState([])
   const [abierto, setAbierto] = useState(false)
   const [stats, setStats] = useState(null)
   const [localPublico, setLocalPublico] = useState(null)
@@ -78,7 +79,13 @@ export default function Dashboard() {
       setStats(res.data)
     } catch (e) {}
   }
-
+const cargarEntregados = async () => {
+    try {
+      const hoy = new Date().toISOString().split('T')[0]
+      const res = await axios.get(`${API}/locales/mi-local/reporte?desde=${hoy}&hasta=${hoy}`, { headers })
+      setEntregados(res.data.pedidos || [])
+    } catch (e) {}
+  }
   const cargarLocal = async () => {
     try {
       const res = await axios.get(`${API}/locales/mi-local/info`, { headers })
@@ -110,14 +117,14 @@ export default function Dashboard() {
   }, [slug])
 
   useEffect(() => {
-    cargarLocal(); cargarPedidos(); cargarStats()
+    cargarLocal(); cargarPedidos(); cargarStats(); cargarEntregados()
     const ws = new WebSocket(`wss://restaurant-backend-production-1271.up.railway.app/pedidos/ws/${local_id}`)
     wsRef.current = ws
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data)
       if (data.tipo === 'nuevo_pedido') { sonarPedidoNuevo(); cargarPedidos(); cargarStats() }
     }
-    const interval = setInterval(() => { cargarPedidos(); cargarStats() }, 5000)
+    const interval = setInterval(() => { cargarPedidos(); cargarStats(); cargarEntregados() }, 5000)
     return () => { ws.close(); clearInterval(interval) }
   }, [])
 
@@ -227,6 +234,35 @@ export default function Dashboard() {
           {enPreparacion.map(p => <TarjetaPedido key={p.id} p={p} color={color} tipo="preparando" onAccion={accionPedido} />)}
         </div>
       </div>
+
+      {/* ENTREGADOS HOY */}
+      {entregados.length > 0 && (
+        <div style={{ padding: '0 16px 24px' }}>
+          <div style={{ background: '#1a1a1a', padding: 16, borderRadius: 20, border: '1px solid #2a2a2a' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e' }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#22c55e', letterSpacing: 0.5 }}>ENTREGADOS HOY</span>
+              <span style={{ background: '#22c55e', color: '#000', borderRadius: 20, fontSize: 11, fontWeight: 800, padding: '2px 8px', marginLeft: 2 }}>{entregados.length}</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              {entregados.map(p => (
+                <div key={p.pedido_id} style={{ background: '#111', borderRadius: 12, padding: '10px 12px', border: '1px solid #1a2a1a', borderLeft: '3px solid #22c55e' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: 'white' }}>
+                      {p.mesa ? `Mesa ${p.mesa}` : p.tipo === 'delivery' ? '🛵 Delivery' : p.tipo === 'retiro' ? '🏪 Retiro' : '—'}
+                    </span>
+                    <span style={{ fontWeight: 700, color: '#22c55e', fontSize: 13 }}>Gs. {p.total?.toLocaleString()}</span>
+                  </div>
+                  {p.nombre_cliente && <p style={{ margin: '0 0 4px', fontSize: 11, color: '#555' }}>{p.nombre_cliente}</p>}
+                  <p style={{ margin: 0, fontSize: 11, color: '#444' }}>
+                    {p.items?.map((item, i) => `${item.cantidad}× ${item.nombre}`).join(', ')}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -325,5 +361,6 @@ function TarjetaPedido({ p, color, tipo, onAccion }) {
         )}
       </div>
     </div>
+    
   )
 }
