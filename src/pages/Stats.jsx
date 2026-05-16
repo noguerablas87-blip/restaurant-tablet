@@ -16,12 +16,17 @@ export default function Stats() {
   const [datos, setDatos] = useState(null)
   const [cargando, setCargando] = useState(false)
   const [generando, setGenerando] = useState(false)
+  const [metricasHora, setMetricasHora] = useState([])
 
   const cargar = async () => {
     setCargando(true)
     try {
-      const res = await axios.get(`${API}/locales/mi-local/reporte?desde=${desde}&hasta=${hasta}`, { headers })
-      setDatos(res.data)
+      const [reporte, metricas] = await Promise.all([
+        axios.get(`${API}/locales/mi-local/reporte?desde=${desde}&hasta=${hasta}`, { headers }),
+        axios.get(`${API}/locales/mi-local/metricas-hora?desde=${desde}&hasta=${hasta}`, { headers }),
+      ])
+      setDatos(reporte.data)
+      setMetricasHora(metricas.data)
     } catch (e) { } finally { setCargando(false) }
   }
 
@@ -31,7 +36,6 @@ export default function Stats() {
     if (!datos) return
     setGenerando(true)
     try {
-      // Cargar jsPDF dinámicamente
       const script = document.createElement('script')
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
       document.head.appendChild(script)
@@ -45,7 +49,6 @@ export default function Stats() {
       const negro = [30, 30, 30]
       let y = 20
 
-      // Header
       doc.setFillColor(...color)
       doc.rect(0, 0, 210, 35, 'F')
       doc.setTextColor(255, 255, 255)
@@ -59,7 +62,6 @@ export default function Stats() {
 
       y = 45
 
-      // Resumen general
       doc.setTextColor(...negro)
       doc.setFontSize(13)
       doc.setFont('helvetica', 'bold')
@@ -87,14 +89,12 @@ export default function Stats() {
       })
       y += 32
 
-      // Productos más vendidos
       doc.setTextColor(...negro)
       doc.setFontSize(13)
       doc.setFont('helvetica', 'bold')
       doc.text('Productos más vendidos', 15, y)
       y += 6
 
-      // Cabecera tabla productos
       doc.setFillColor(...color)
       doc.rect(15, y, 180, 8, 'F')
       doc.setTextColor(255, 255, 255)
@@ -125,7 +125,6 @@ export default function Stats() {
 
       y += 8
 
-      // Detalle de pedidos
       doc.setTextColor(...negro)
       doc.setFontSize(13)
       doc.setFont('helvetica', 'bold')
@@ -157,17 +156,14 @@ export default function Stats() {
         doc.text(`#${p.numero_diario || p.pedido_id}`, 18, y + 5)
         doc.text(p.creado_en || '', 28, y + 5)
         doc.text(p.mesa ? `Mesa ${p.mesa}` : '—', 80, y + 5)
-
         p.items.forEach((item, j) => {
           doc.text(`${item.cantidad}x ${item.nombre.slice(0, 22)}`, 100, y + 5 + j * 5)
         })
-
         doc.setFont('helvetica', 'bold')
         doc.text(`Gs. ${p.total.toLocaleString()}`, 168, y + 5, { align: 'right' })
         y += Math.max(7, p.items.length * 5 + 4)
       })
 
-      // Footer
       const totalPags = doc.internal.getNumberOfPages()
       for (let i = 1; i <= totalPags; i++) {
         doc.setPage(i)
@@ -196,7 +192,6 @@ export default function Stats() {
   return (
     <div style={{ minHeight: '100vh', background: '#f0f2f5', fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
 
-      {/* Header */}
       <div style={{ background: '#1a1a2e', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={() => navigate('/dashboard')} style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', borderRadius: 20, padding: '7px 14px', cursor: 'pointer', fontSize: 13 }}>← Volver</button>
         <h1 style={{ color: 'white', margin: 0, fontSize: 17, fontWeight: 700 }}>Estadísticas y reportes</h1>
@@ -204,7 +199,6 @@ export default function Stats() {
 
       <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-        {/* Filtro de fechas */}
         <div style={{ background: 'white', borderRadius: 14, padding: 16, border: '1px solid #efefef' }}>
           <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: 11, color: '#aaa', letterSpacing: 1, textTransform: 'uppercase' }}>Período</p>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -224,7 +218,6 @@ export default function Stats() {
 
         {datos && (
           <>
-            {/* Resumen */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
               {[
                 { label: 'Total pedidos', value: datos.resumen.total_pedidos, emoji: '📋', color: '#2196F3' },
@@ -239,7 +232,6 @@ export default function Stats() {
               ))}
             </div>
 
-            {/* Productos más vendidos */}
             <div style={{ background: 'white', borderRadius: 14, padding: 16, border: '1px solid #efefef' }}>
               <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: 13, color: '#111' }}>🏆 Productos más vendidos</p>
               {datos.resumen.productos.length === 0 && <p style={{ color: '#aaa', fontSize: 13 }}>Sin datos</p>}
@@ -248,9 +240,7 @@ export default function Stats() {
                 return (
                   <div key={i} style={{ marginBottom: 10 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>
-                        {i + 1}. {p.nombre}
-                      </span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{i + 1}. {p.nombre}</span>
                       <span style={{ fontSize: 13, color: '#22c55e', fontWeight: 700 }}>Gs. {p.total.toLocaleString()}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -264,7 +254,6 @@ export default function Stats() {
               })}
             </div>
 
-            {/* Detalle pedidos */}
             <div style={{ background: 'white', borderRadius: 14, padding: 16, border: '1px solid #efefef' }}>
               <p style={{ margin: '0 0 12px', fontWeight: 700, fontSize: 13, color: '#111' }}>📋 Detalle de pedidos ({datos.pedidos.length})</p>
               {datos.pedidos.length === 0 && <p style={{ color: '#aaa', fontSize: 13 }}>Sin pedidos en este período</p>}
@@ -288,7 +277,42 @@ export default function Stats() {
               ))}
             </div>
 
-            {/* Botón descargar PDF */}
+            {/* Métricas por hora */}
+            {metricasHora.length > 0 && (() => {
+              const maxPedidos = Math.max(...metricasHora.map(h => h.pedidos), 1)
+              const horasPico = [...metricasHora].sort((a, b) => b.pedidos - a.pedidos).slice(0, 3).filter(h => h.pedidos > 0)
+              return (
+                <div style={{ background: 'white', borderRadius: 14, padding: 16, border: '1px solid #efefef' }}>
+                  <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 13, color: '#111' }}>⏰ Ventas por hora</p>
+                  <p style={{ margin: '0 0 14px', fontSize: 12, color: '#aaa' }}>
+                    {horasPico.length > 0 ? `Horas pico: ${horasPico.map(h => `${h.hora}:00`).join(', ')}` : 'Sin datos suficientes'}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 80, paddingBottom: 4 }}>
+                    {metricasHora.map(h => {
+                      const altura = h.pedidos > 0 ? Math.max(8, (h.pedidos / maxPedidos) * 72) : 3
+                      const esPico = horasPico.some(hp => hp.hora === h.hora)
+                      return (
+                        <div key={h.hora} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
+                          <div style={{ width: '100%', background: esPico ? '#b91c1c' : '#e0e0e0', borderRadius: '3px 3px 0 0', height: altura }} />
+                          <span style={{ fontSize: 9, color: '#aaa', marginTop: 3 }}>{h.hora}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {horasPico.length > 0 && (
+                    <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                      {horasPico.map(h => (
+                        <div key={h.hora} style={{ background: '#fff5f5', borderRadius: 10, padding: '6px 12px', border: '1px solid #fecaca' }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{h.hora}:00</span>
+                          <span style={{ fontSize: 11, color: '#888', marginLeft: 6 }}>{h.pedidos} pedidos · Gs. {h.total.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
             <button onClick={generarPDF} disabled={generando} style={{
               width: '100%', background: generando ? '#ccc' : '#b91c1c',
               color: 'white', border: 'none', borderRadius: 14,
