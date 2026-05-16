@@ -17,13 +17,14 @@ export default function Menu() {
     categoria_id: '', imagen_url: '', tiempo_prep: '10'
   })
   const [mostrarFormProd, setMostrarFormProd] = useState(false)
+  const [editando, setEditando] = useState(null)
+  const [previewEdicion, setPreviewEdicion] = useState(null)
   const [subiendo, setSubiendo] = useState(false)
   const [preview, setPreview] = useState(null)
 
   const cargar = async () => {
     try {
       const res = await axios.get(`${API}/menu/${localStorage.getItem('slug') || 'don-carlos'}`)
-      // Filtrar productos eliminados
       const cats = res.data.categorias.map(cat => ({
         ...cat,
         productos: cat.productos.filter(p => !p.eliminado)
@@ -43,6 +44,22 @@ export default function Menu() {
       const res = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, formData)
       setNuevoProducto(prev => ({ ...prev, imagen_url: res.data.secure_url }))
       setPreview(res.data.secure_url)
+    } catch (e) {
+      alert('Error al subir la imagen')
+    } finally {
+      setSubiendo(false)
+    }
+  }
+
+  const subirFotoEdicion = async (archivo) => {
+    setSubiendo(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', archivo)
+      formData.append('upload_preset', CLOUDINARY_PRESET)
+      const res = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, formData)
+      setEditando(prev => ({ ...prev, imagen_url: res.data.secure_url }))
+      setPreviewEdicion(res.data.secure_url)
     } catch (e) {
       alert('Error al subir la imagen')
     } finally {
@@ -73,6 +90,22 @@ export default function Menu() {
       setMostrarFormProd(false)
       cargar()
     } catch (e) { }
+  }
+
+  const editarProducto = async () => {
+    if (!editando) return
+    try {
+      await axios.patch(`${API}/menu/productos/${editando.id}`, {
+        nombre: editando.nombre,
+        precio: parseFloat(editando.precio),
+        descripcion: editando.descripcion,
+        tiempo_prep: parseInt(editando.tiempo_prep) || 10,
+        imagen_url: editando.imagen_url || null,
+      }, { headers })
+      setEditando(null)
+      setPreviewEdicion(null)
+      cargar()
+    } catch (e) { alert('Error al guardar') }
   }
 
   const toggleDisponible = async (id, disponible) => {
@@ -145,41 +178,28 @@ export default function Menu() {
                 <option value="">Seleccioná una categoría</option>
                 {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
-
               <input value={nuevoProducto.nombre}
                 onChange={e => setNuevoProducto({ ...nuevoProducto, nombre: e.target.value })}
-                placeholder="Nombre del producto"
-                style={inputStyle} />
-
+                placeholder="Nombre del producto" style={inputStyle} />
               <input value={nuevoProducto.precio}
                 onChange={e => setNuevoProducto({ ...nuevoProducto, precio: e.target.value })}
-                placeholder="Precio en Gs." type="number"
-                style={inputStyle} />
-
+                placeholder="Precio en Gs." type="number" style={inputStyle} />
               <input value={nuevoProducto.descripcion}
                 onChange={e => setNuevoProducto({ ...nuevoProducto, descripcion: e.target.value })}
                 placeholder="Descripción (opcional)"
                 style={{ ...inputStyle, gridColumn: '1/-1' }} />
-
-              {/* Tiempo de preparación */}
               <div style={{ gridColumn: '1/-1' }}>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#555', display: 'block', marginBottom: 6 }}>
                   ⏱ Tiempo de preparación (minutos)
                 </label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <input
-                    type="number" min="1" max="120"
+                  <input type="number" min="1" max="120"
                     value={nuevoProducto.tiempo_prep}
                     onChange={e => setNuevoProducto({ ...nuevoProducto, tiempo_prep: e.target.value })}
-                    style={{ ...inputStyle, width: 100 }}
-                  />
-                  <span style={{ fontSize: 12, color: '#999' }}>
-                    min — usado para calcular tiempo de espera del cliente
-                  </span>
+                    style={{ ...inputStyle, width: 100 }} />
+                  <span style={{ fontSize: 12, color: '#999' }}>min</span>
                 </div>
               </div>
-
-              {/* Foto */}
               <div style={{ gridColumn: '1/-1' }}>
                 <label style={{ fontSize: 12, fontWeight: 700, color: '#555', display: 'block', marginBottom: 8 }}>
                   Foto del producto
@@ -191,7 +211,7 @@ export default function Menu() {
                     display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0
                   }}>
                     📷 {subiendo ? 'Subiendo...' : 'Foto / Galería'}
-                    <input type="file" accept="image/*" 
+                    <input type="file" accept="image/*"
                       style={{ display: 'none' }}
                       onChange={e => e.target.files[0] && subirFoto(e.target.files[0])} />
                   </label>
@@ -204,7 +224,6 @@ export default function Menu() {
                   )}
                 </div>
               </div>
-
               <button onClick={crearProducto} disabled={subiendo} style={{
                 gridColumn: '1/-1',
                 background: subiendo ? '#ccc' : '#22c55e',
@@ -225,35 +244,89 @@ export default function Menu() {
               <p style={{ color: '#ccc', fontSize: 13 }}>Sin productos todavía</p>
             )}
             {cat.productos.map(p => (
-              <div key={p.id} style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '10px 0', borderBottom: '1px solid #f5f5f5',
-                opacity: p.disponible ? 1 : 0.5
-              }}>
-                {p.imagen_url
-                  ? <img src={p.imagen_url} alt={p.nombre} style={{ width: 54, height: 54, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
-                  : <div style={{ width: 54, height: 54, borderRadius: 10, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🍽️</div>
-                }
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#111' }}>{p.nombre}</p>
-                  {p.descripcion && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#aaa' }}>{p.descripcion}</p>}
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginTop: 3 }}>
-                    <p style={{ margin: 0, fontWeight: 700, color: '#22c55e', fontSize: 14 }}>Gs. {parseInt(p.precio).toLocaleString()}</p>
-                    <span style={{ fontSize: 11, color: '#aaa' }}>⏱ {p.tiempo_prep || 0} min</span>
-                  </div>
-                </div>
-                <button onClick={() => toggleDisponible(p.id, p.disponible)} style={{
-                  background: p.disponible ? '#f0fdf4' : '#fff5f5',
-                  color: p.disponible ? '#16a34a' : '#dc2626',
-                  border: 'none', borderRadius: 8, padding: '6px 12px',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0
+              <div key={p.id}>
+                {/* Fila del producto */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  padding: '10px 0', borderBottom: editando?.id === p.id ? 'none' : '1px solid #f5f5f5',
+                  opacity: p.disponible ? 1 : 0.5
                 }}>
-                  {p.disponible ? '✓ Disponible' : '✗ Agotado'}
-                </button>
-                <button onClick={() => eliminarProducto(p.id)} style={{
-                  background: '#fff5f5', color: '#ef4444', border: 'none',
-                  borderRadius: 8, padding: '6px 10px', fontSize: 16, cursor: 'pointer', flexShrink: 0
-                }}>🗑</button>
+                  {p.imagen_url
+                    ? <img src={p.imagen_url} alt={p.nombre} style={{ width: 54, height: 54, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                    : <div style={{ width: 54, height: 54, borderRadius: 10, background: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🍽️</div>
+                  }
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: '#111' }}>{p.nombre}</p>
+                    {p.descripcion && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#aaa' }}>{p.descripcion}</p>}
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginTop: 3 }}>
+                      <p style={{ margin: 0, fontWeight: 700, color: '#22c55e', fontSize: 14 }}>Gs. {parseInt(p.precio).toLocaleString()}</p>
+                      <span style={{ fontSize: 11, color: '#aaa' }}>⏱ {p.tiempo_prep || 0} min</span>
+                    </div>
+                  </div>
+                  <button onClick={() => toggleDisponible(p.id, p.disponible)} style={{
+                    background: p.disponible ? '#f0fdf4' : '#fff5f5',
+                    color: p.disponible ? '#16a34a' : '#dc2626',
+                    border: 'none', borderRadius: 8, padding: '6px 12px',
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0
+                  }}>
+                    {p.disponible ? '✓ Disponible' : '✗ Agotado'}
+                  </button>
+                  <button onClick={() => {
+                    if (editando?.id === p.id) { setEditando(null); setPreviewEdicion(null) }
+                    else { setEditando({ id: p.id, nombre: p.nombre, precio: p.precio, descripcion: p.descripcion || '', tiempo_prep: p.tiempo_prep || 10, imagen_url: p.imagen_url || '' }); setPreviewEdicion(p.imagen_url || null) }
+                  }} style={{
+                    background: editando?.id === p.id ? '#dbeafe' : '#eff6ff',
+                    color: '#2563eb', border: 'none',
+                    borderRadius: 8, padding: '6px 10px', fontSize: 16, cursor: 'pointer', flexShrink: 0
+                  }}>✏️</button>
+                  <button onClick={() => eliminarProducto(p.id)} style={{
+                    background: '#fff5f5', color: '#ef4444', border: 'none',
+                    borderRadius: 8, padding: '6px 10px', fontSize: 16, cursor: 'pointer', flexShrink: 0
+                  }}>🗑</button>
+                </div>
+
+                {/* Formulario edición inline */}
+                {editando?.id === p.id && (
+                  <div style={{ margin: '8px 0 12px', background: '#f0f6ff', borderRadius: 12, padding: 14, border: '1.5px solid #bfdbfe', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: 12, color: '#2563eb' }}>✏️ Editando: {p.nombre}</p>
+                    <input value={editando.nombre} onChange={e => setEditando({ ...editando, nombre: e.target.value })}
+                      placeholder="Nombre" style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} />
+                    <input value={editando.precio} onChange={e => setEditando({ ...editando, precio: e.target.value })}
+                      placeholder="Precio en Gs." type="number" style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} />
+                    <input value={editando.descripcion} onChange={e => setEditando({ ...editando, descripcion: e.target.value })}
+                      placeholder="Descripción (opcional)" style={{ ...inputStyle, width: '100%', boxSizing: 'border-box' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <label style={{ fontSize: 12, color: '#555', fontWeight: 600, flexShrink: 0 }}>⏱ Tiempo prep:</label>
+                      <input value={editando.tiempo_prep} onChange={e => setEditando({ ...editando, tiempo_prep: e.target.value })}
+                        type="number" min="1" max="120" style={{ ...inputStyle, width: 80 }} />
+                      <span style={{ fontSize: 12, color: '#aaa' }}>min</span>
+                    </div>
+                    {/* Foto */}
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <label style={{ background: '#f5f5f5', border: '2px dashed #ddd', borderRadius: 10, padding: '8px 14px', cursor: 'pointer', fontSize: 13, color: '#666', display: 'flex', alignItems: 'center', gap: 6 }}>
+                        📷 {subiendo ? 'Subiendo...' : 'Cambiar foto'}
+                        <input type="file" accept="image/*" style={{ display: 'none' }}
+                          onChange={e => e.target.files[0] && subirFotoEdicion(e.target.files[0])} />
+                      </label>
+                      {previewEdicion && (
+                        <div style={{ position: 'relative' }}>
+                          <img src={previewEdicion} alt="preview" style={{ width: 60, height: 60, borderRadius: 10, objectFit: 'cover' }} />
+                          <button onClick={() => { setPreviewEdicion(null); setEditando(prev => ({ ...prev, imagen_url: '' })) }}
+                            style={{ position: 'absolute', top: -6, right: -6, background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: 20, height: 20, cursor: 'pointer', fontSize: 11 }}>✕</button>
+                        </div>
+                      )}
+                    </div>
+                    {/* Botones */}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={editarProducto} disabled={subiendo} style={{ flex: 1, background: subiendo ? '#ccc' : '#2563eb', color: 'white', border: 'none', borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+                        ✓ Guardar cambios
+                      </button>
+                      <button onClick={() => { setEditando(null); setPreviewEdicion(null) }} style={{ flex: 1, background: '#f5f5f5', color: '#666', border: 'none', borderRadius: 10, padding: '11px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
