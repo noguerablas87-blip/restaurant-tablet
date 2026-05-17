@@ -5,9 +5,9 @@ import axios from 'axios'
 const API = 'https://restaurant-backend-production-1271.up.railway.app'
 
 const METODO_LABEL = {
-  efectivo:  { icon: '💵', label: 'Efectivo' },
-  billetera: { icon: '📱', label: 'Tigo Money' },
-  tarjeta:   { icon: '💳', label: 'Tarjeta' },
+  efectivo:      { icon: '💵', label: 'Efectivo' },
+  tarjeta:       { icon: '💳', label: 'Tarjeta' },
+  transferencia: { icon: '🏦', label: 'Transferencia' },
 }
 
 let audioCtx = null
