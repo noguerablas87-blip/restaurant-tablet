@@ -16,6 +16,7 @@ export default function Configuracion() {
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [costoKm, setCostoKm] = useState('')
+  const [distanciaMax, setDistanciaMax] = useState('')
   const [lat, setLat] = useState(-25.2867)
   const [lng, setLng] = useState(-57.647)
   const [direccionLocal, setDireccionLocal] = useState('')
@@ -29,6 +30,7 @@ export default function Configuracion() {
         if (res.data.latitud) setLat(res.data.latitud)
         if (res.data.longitud) setLng(res.data.longitud)
         if (res.data.costo_km) setCostoKm(res.data.costo_km.toString())
+          if (res.data.distancia_max_km) setDistanciaMax(res.data.distancia_max_km.toString())
         if (res.data.direccion) setDireccionLocal(res.data.direccion)
       } catch (e) {}
       finally { setCargando(false) }
@@ -126,6 +128,7 @@ export default function Configuracion() {
         latitud: lat,
         longitud: lng,
         costo_km: parseInt(costoKm),
+        distancia_max_km: parseInt(distanciaMax) || 0,
         direccion: direccionLocal,
       }, { headers })
       alert('✅ Configuración guardada')
@@ -162,6 +165,20 @@ export default function Configuracion() {
             <span style={{ color: '#666', fontSize: 14 }}>/km</span>
           </div>
           <p style={{ margin: '8px 0 0', fontSize: 12, color: '#555' }}>Ej: si el cliente está a 3km y el costo es Gs. 3.000/km → delivery = Gs. 9.000</p>
+          <div style={{ marginTop: 14 }}>
+  <p style={{ margin: '0 0 8px', fontWeight: 700, fontSize: 13, color: '#f59e0b' }}>📏 Distancia máxima de delivery (km)</p>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+    <input
+      type="number"
+      value={distanciaMax}
+      onChange={e => setDistanciaMax(e.target.value)}
+      placeholder="Ej: 30"
+      style={{ flex: 1, background: '#111', border: '1.5px solid #333', borderRadius: 10, padding: '10px 12px', fontSize: 16, color: 'white', outline: 'none', fontFamily: 'inherit' }}
+    />
+    <span style={{ color: '#666', fontSize: 14 }}>km</span>
+  </div>
+  <p style={{ margin: '8px 0 0', fontSize: 12, color: '#555' }}>Si el cliente está más lejos no podrá hacer el pedido. Poné 0 para sin límite.</p>
+</div>
         </div>
 
         {/* Ubicación del local */}
