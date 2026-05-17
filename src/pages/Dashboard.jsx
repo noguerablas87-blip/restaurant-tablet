@@ -329,6 +329,14 @@ function TarjetaPedido({ p, color, tipo, onAccion }) {
           📝 {p.nota_general}
         </div>
       )}
+      {/* Factura */}
+      {p.necesita_factura && (
+        <div style={{ fontSize: 12, marginBottom: 10, background: '#0a1a0a', borderRadius: 8, padding: '8px 10px', border: '1px solid #1a3a1a' }}>
+          <p style={{ margin: '0 0 4px', fontWeight: 700, color: '#22c55e', fontSize: 12 }}>🧾 Solicita factura</p>
+          {p.factura_ruc && <p style={{ margin: '2px 0', color: '#888', fontSize: 11 }}>RUC/CI: {p.factura_ruc}</p>}
+          {p.factura_razon_social && <p style={{ margin: '2px 0', color: '#888', fontSize: 11 }}>Razón social: {p.factura_razon_social}</p>}
+        </div>
+      )}
 
       {/* Tags */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
