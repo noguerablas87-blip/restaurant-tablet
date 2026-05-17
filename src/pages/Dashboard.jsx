@@ -255,6 +255,12 @@ const cargarEntregados = async () => {
                     <span style={{ fontWeight: 700, color: '#22c55e', fontSize: 13 }}>Gs. {p.total?.toLocaleString()}</span>
                   </div>
                   {p.nombre_cliente && <p style={{ margin: '0 0 4px', fontSize: 11, color: '#555' }}>{p.nombre_cliente}</p>}
+                  {p.tipo === 'delivery' && p.direccion_entrega && (
+                    <p style={{ margin: '0 0 4px', fontSize: 11, color: '#f59e0b' }}>📍 {p.direccion_entrega}</p>
+                  )}
+                  {p.telefono_cliente && (
+                    <p style={{ margin: '0 0 4px', fontSize: 11, color: '#888' }}>📞 {p.telefono_cliente}</p>
+                  )}
                   <p style={{ margin: 0, fontSize: 11, color: '#444' }}>
                     {p.items?.map((item, i) => `${item.cantidad}× ${item.nombre}`).join(', ')}
                   </p>
