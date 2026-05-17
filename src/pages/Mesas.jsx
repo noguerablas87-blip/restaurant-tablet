@@ -45,6 +45,7 @@ export default function Mesas() {
   }
 
   const verQR = async (numero) => {
+    setQrSeleccionado(prev => prev ? { ...prev, numero } : null)
     try {
       const res = await axios.get(`${API}/locales/mi-local/qr/${numero}`, { headers })
       setQrSeleccionado({ numero, qr: res.data.qr_base64, url: `${BASE_URL}/${slug}?mesa=${numero}` })
