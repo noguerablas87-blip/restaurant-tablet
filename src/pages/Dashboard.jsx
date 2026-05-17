@@ -247,23 +247,48 @@ const cargarEntregados = async () => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               {entregados.map(p => (
-                <div key={p.pedido_id} style={{ background: '#111', borderRadius: 12, padding: '10px 12px', border: '1px solid #1a2a1a', borderLeft: '3px solid #22c55e' }}>
+                <div key={p.pedido_id} style={{ background: '#111', borderRadius: 12, padding: '12px', border: '1px solid #1a2a1a', borderLeft: '3px solid #22c55e' }}>
+                  {/* Cabecera */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: 'white' }}>
-                      {p.mesa ? `Mesa ${p.mesa}` : p.tipo === 'delivery' ? '🛵 Delivery' : p.tipo === 'retiro' ? '🏪 Retiro' : '—'}
-                    </span>
+                    <div>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: 'white' }}>
+                        {p.mesa ? `Mesa ${p.mesa}` : p.tipo === 'delivery' ? '🛵 Delivery' : p.tipo === 'retiro' ? '🏪 Retiro' : '—'}
+                      </span>
+                      {p.numero_diario && <span style={{ fontSize: 11, color: '#444', marginLeft: 6 }}>#{p.numero_diario}</span>}
+                    </div>
                     <span style={{ fontWeight: 700, color: '#22c55e', fontSize: 13 }}>Gs. {p.total?.toLocaleString()}</span>
                   </div>
-                  {p.nombre_cliente && <p style={{ margin: '0 0 4px', fontSize: 11, color: '#555' }}>{p.nombre_cliente}</p>}
+                  {/* Cliente */}
+                  {p.nombre_cliente && <p style={{ margin: '0 0 4px', fontSize: 11, color: '#666' }}>👤 {p.nombre_cliente}</p>}
+                  {/* Delivery */}
                   {p.tipo === 'delivery' && p.direccion_entrega && (
                     <p style={{ margin: '0 0 4px', fontSize: 11, color: '#f59e0b' }}>📍 {p.direccion_entrega}</p>
                   )}
-                  {p.telefono_cliente && (
-                    <p style={{ margin: '0 0 4px', fontSize: 11, color: '#888' }}>📞 {p.telefono_cliente}</p>
+                  {p.telefono_cliente && <p style={{ margin: '0 0 4px', fontSize: 11, color: '#888' }}>📞 {p.telefono_cliente}</p>}
+                  {/* Items */}
+                  <div style={{ margin: '6px 0', padding: '6px 8px', background: '#1a1a1a', borderRadius: 8 }}>
+                    {p.items?.map((item, i) => (
+                      <p key={i} style={{ margin: '2px 0', fontSize: 11, color: '#aaa' }}>{item.cantidad}× {item.nombre}</p>
+                    ))}
+                  </div>
+                  {/* Método de pago */}
+                  {p.metodo_pago && (
+                    <p style={{ margin: '4px 0', fontSize: 11, color: '#555' }}>
+                      {p.metodo_pago === 'efectivo' ? '💵' : p.metodo_pago === 'tarjeta' ? '💳' : p.metodo_pago === 'transferencia' ? '🏦' : '📱'} {p.metodo_pago}
+                    </p>
                   )}
-                  <p style={{ margin: 0, fontSize: 11, color: '#444' }}>
-                    {p.items?.map((item, i) => `${item.cantidad}× ${item.nombre}`).join(', ')}
-                  </p>
+                  {/* Nota */}
+                  {p.nota_general && <p style={{ margin: '4px 0 0', fontSize: 11, color: '#555', fontStyle: 'italic' }}>📝 {p.nota_general}</p>}
+                  {/* Factura */}
+                  {p.necesita_factura && (
+                    <div style={{ marginTop: 6, padding: '4px 8px', background: '#0a1a0a', borderRadius: 6, border: '1px solid #1a3a1a' }}>
+                      <p style={{ margin: '0 0 2px', fontSize: 11, fontWeight: 700, color: '#22c55e' }}>🧾 Factura</p>
+                      {p.factura_ruc && <p style={{ margin: '1px 0', fontSize: 11, color: '#888' }}>RUC: {p.factura_ruc}</p>}
+                      {p.factura_razon_social && <p style={{ margin: '1px 0', fontSize: 11, color: '#888' }}>{p.factura_razon_social}</p>}
+                    </div>
+                  )}
+                  {/* Hora */}
+                  <p style={{ margin: '4px 0 0', fontSize: 10, color: '#333' }}>🕐 {p.creado_en}</p>
                 </div>
               ))}
             </div>
