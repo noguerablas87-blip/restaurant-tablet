@@ -46,6 +46,7 @@ export default function Mesas() {
   }
 
   const verQR = async (numero) => {
+    setQrSeleccionado({ numero, qr: null, url: `${BASE_URL}/${slug}?mesa=${numero}` })
     setMesaSeleccionada(numero)
     try {
       const res = await axios.get(`${API}/locales/mi-local/qr/${numero}`, { headers })
@@ -143,7 +144,7 @@ export default function Mesas() {
         {/* QR del local seleccionado */}
         {qrSeleccionado && (
           <div style={{ background: 'white', borderRadius: 16, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'center' }}>
-           <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>QR — Mesa {mesaSeleccionada}</h3>
+           <h3 style={{ margin: '0 0 16px', fontSize: 16 }}>QR — Mesa {qrSeleccionado.numero}</h3>
             <img
               ref={qrRef}
               src={`data:image/png;base64,${qrSeleccionado.qr}`}
