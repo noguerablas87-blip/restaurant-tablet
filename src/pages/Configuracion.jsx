@@ -21,6 +21,10 @@ export default function Configuracion() {
   const [lng, setLng] = useState(-57.647)
   const [direccionLocal, setDireccionLocal] = useState('')
   const [mapListo, setMapListo] = useState(false)
+  const [banco, setBanco] = useState('')
+  const [cuentaBancaria, setCuentaBancaria] = useState('')
+  const [titularCuenta, setTitularCuenta] = useState('')
+  const [aliasCuenta, setAliasCuenta] = useState('')
 
   // Cargar datos del local
   useEffect(() => {
@@ -32,6 +36,10 @@ export default function Configuracion() {
         if (res.data.costo_km) setCostoKm(res.data.costo_km.toString())
           if (res.data.distancia_max_km) setDistanciaMax(res.data.distancia_max_km.toString())
         if (res.data.direccion) setDireccionLocal(res.data.direccion)
+          if (res.data.banco) setBanco(res.data.banco)
+        if (res.data.cuenta_bancaria) setCuentaBancaria(res.data.cuenta_bancaria)
+        if (res.data.titular_cuenta) setTitularCuenta(res.data.titular_cuenta)
+        if (res.data.alias_cuenta) setAliasCuenta(res.data.alias_cuenta)
       } catch (e) {}
       finally { setCargando(false) }
     }
@@ -130,6 +138,10 @@ export default function Configuracion() {
         costo_km: parseInt(costoKm),
         distancia_max_km: parseInt(distanciaMax) || 0,
         direccion: direccionLocal,
+        banco: banco || null,
+        cuenta_bancaria: cuentaBancaria || null,
+        titular_cuenta: titularCuenta || null,
+        alias_cuenta: aliasCuenta || null,
       }, { headers })
       alert('✅ Configuración guardada')
     } catch (e) {
@@ -210,8 +222,24 @@ export default function Configuracion() {
             <div ref={mapRef} style={{ height: 300, borderRadius: 12, overflow: 'hidden', border: '1px solid #333' }} />
           )}
         </div>
+{/* Datos bancarios */}
+        <div style={{ background: '#1e1e1e', borderRadius: 14, padding: 16, border: '1px solid #2a2a2a' }}>
+          <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: 13, color: '#22c55e' }}>🏦 Datos bancarios para transferencia</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <input value={banco} onChange={e => setBanco(e.target.value)} placeholder="Banco (Ej: Banco Continental)"
+              style={{ background: '#111', border: '1.5px solid #333', borderRadius: 10, padding: '10px 12px', fontSize: 14, color: 'white', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }} />
+            <input value={cuentaBancaria} onChange={e => setCuentaBancaria(e.target.value)} placeholder="Número de cuenta"
+              style={{ background: '#111', border: '1.5px solid #333', borderRadius: 10, padding: '10px 12px', fontSize: 14, color: 'white', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }} />
+            <input value={titularCuenta} onChange={e => setTitularCuenta(e.target.value)} placeholder="Titular de la cuenta"
+              style={{ background: '#111', border: '1.5px solid #333', borderRadius: 10, padding: '10px 12px', fontSize: 14, color: 'white', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }} />
+            <input value={aliasCuenta} onChange={e => setAliasCuenta(e.target.value)} placeholder="Alias"
+              style={{ background: '#111', border: '1.5px solid #333', borderRadius: 10, padding: '10px 12px', fontSize: 14, color: 'white', outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }} />
+          </div>
+          <p style={{ margin: '10px 0 0', fontSize: 12, color: '#555' }}>Se mostrarán al cliente cuando elija pagar por transferencia.</p>
+        </div>
 
         {/* Botón guardar */}
+        
         <button onClick={guardar} disabled={guardando} style={{
           width: '100%', background: guardando ? '#333' : '#22c55e',
           color: guardando ? '#666' : 'black', border: 'none', borderRadius: 14,
