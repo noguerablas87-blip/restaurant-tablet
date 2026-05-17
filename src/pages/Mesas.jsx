@@ -120,8 +120,8 @@ export default function Mesas() {
               <div key={m.id} style={{ position: 'relative' }}>
                 <button onClick={() => verQR(m.numero)} style={{
                   width: '100%',
-                  background: qrSeleccionado?.numero === m.numero ? '#1D9E75' : '#f0f0f0',
-                  color: qrSeleccionado?.numero === m.numero ? 'white' : '#333',
+                 background: mesaSeleccionada === m.numero ? '#1D9E75' : '#f0f0f0',
+                  color: mesaSeleccionada === m.numero ? 'white' : '#333',
                   border: 'none', borderRadius: 12, padding: '20px 10px',
                   fontSize: 16, fontWeight: 700, cursor: 'pointer',
                   textAlign: 'center'
