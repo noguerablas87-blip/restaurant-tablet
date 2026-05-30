@@ -169,7 +169,7 @@ const cargarEntregados = async () => {
             {abierto ? '🟢 Abierto' : '🔴 Cerrado'}
           </button>
           {[{ label: 'Menú', path: '/menu' }, { label: 'Mesas', path: '/mesas' }, { label: 'Estadísticas', path: '/stats' },
-{ label: '⚙️ Delivery', path: '/configuracion' }].map(b => (
+{ label: '⚙️ Delivery', path: '/configuracion' }, { label: '🏪 Mi Local', path: '/mi-local' }].map(b => (
             <button key={b.path} onClick={() => navigate(b.path)} style={{
               background: 'rgba(255,255,255,0.2)', color: 'white',
               border: '1px solid rgba(255,255,255,0.3)', borderRadius: 20,
