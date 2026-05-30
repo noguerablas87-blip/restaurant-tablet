@@ -15,12 +15,20 @@ export default function MiLocal() {
   const [guardando, setGuardando] = useState(false)
   const [subiendo, setSubiendo] = useState({ logo: false, banner: false })
   const [guardado, setGuardado] = useState(false)
+  const [horarioApertura, setHorarioApertura] = useState('')
+  const [horarioCierre, setHorarioCierre] = useState('')
+  const [diasActivos, setDiasActivos] = useState([1,2,3,4,5,6,7])
+  const [horarioAutomatico, setHorarioAutomatico] = useState(false)
 
   useEffect(() => {
     const cargar = async () => {
       try {
         const res = await axios.get(`${API}/locales/mi-local/info`, { headers })
         setLocal(res.data)
+        if (res.data.horario_apertura) setHorarioApertura(res.data.horario_apertura)
+        if (res.data.horario_cierre) setHorarioCierre(res.data.horario_cierre)
+        if (res.data.dias_activos) setDiasActivos(res.data.dias_activos.split(',').map(Number))
+        if (res.data.horario_automatico !== undefined) setHorarioAutomatico(res.data.horario_automatico)
       } catch (e) {
         if (e.response?.status === 401) { localStorage.clear(); navigate('/login') }
       }
@@ -56,6 +64,10 @@ export default function MiLocal() {
         tiempo_prep_min: local.tiempo_prep_min,
         logo_url: local.logo_url,
         banner_url: local.banner_url,
+        horario_apertura: horarioApertura || null,
+        horario_cierre: horarioCierre || null,
+        dias_activos: diasActivos.join(','),
+        horario_automatico: horarioAutomatico,
       }, { headers })
       setGuardado(true)
       setTimeout(() => setGuardado(false), 3000)
@@ -151,6 +163,54 @@ export default function MiLocal() {
             </div>
           </div>
         </div>
+        {/* Horario */}
+        <div style={{ background: '#1e1e1e', borderRadius: 14, padding: 16, border: '1px solid #2a2a2a' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: color }}>🕐 Horario de atención</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#666' }}>Automático</span>
+              <div onClick={() => setHorarioAutomatico(!horarioAutomatico)} style={{
+                width: 44, height: 24, borderRadius: 12, cursor: 'pointer',
+                background: horarioAutomatico ? color : '#333', position: 'relative', transition: 'background 0.2s'
+              }}>
+                <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'white', position: 'absolute', top: 3, left: horarioAutomatico ? 23 : 3, transition: 'left 0.2s' }} />
+              </div>
+            </div>
+          </div>
+          {horarioAutomatico && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+                <div>
+                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>Apertura</label>
+                  <input type="time" value={horarioApertura} onChange={e => setHorarioApertura(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', background: '#111', border: '1.5px solid #333', borderRadius: 10, padding: '10px 12px', fontSize: 14, color: 'white', outline: 'none', fontFamily: 'inherit' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 4 }}>Cierre</label>
+                  <input type="time" value={horarioCierre} onChange={e => setHorarioCierre(e.target.value)}
+                    style={{ width: '100%', boxSizing: 'border-box', background: '#111', border: '1.5px solid #333', borderRadius: 10, padding: '10px 12px', fontSize: 14, color: 'white', outline: 'none', fontFamily: 'inherit' }} />
+                </div>
+              </div>
+              <label style={{ fontSize: 12, color: '#666', display: 'block', marginBottom: 8 }}>Días de atención</label>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {[{n:1,l:'Lun'},{n:2,l:'Mar'},{n:3,l:'Mié'},{n:4,l:'Jue'},{n:5,l:'Vie'},{n:6,l:'Sáb'},{n:7,l:'Dom'}].map(d => (
+                  <button key={d.n} onClick={() => setDiasActivos(prev => prev.includes(d.n) ? prev.filter(x => x !== d.n) : [...prev, d.n])}
+                    style={{ padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none',
+                      background: diasActivos.includes(d.n) ? color : '#2a2a2a',
+                      color: diasActivos.includes(d.n) ? 'white' : '#555' }}>
+                    {d.l}
+                  </button>
+                ))}
+              </div>
+              <p style={{ margin: '10px 0 0', fontSize: 12, color: '#555' }}>El local abrirá y cerrará automáticamente según este horario.</p>
+            </>
+          )}
+          {!horarioAutomatico && (
+            <p style={{ margin: 0, fontSize: 13, color: '#555' }}>Activá el horario automático para que el local abra y cierre solo. Si está desactivado, podés controlarlo manualmente desde el dashboard.</p>
+          )}
+        </div>
+
+       
 
         {/* Logo */}
         <div style={{ background: '#1e1e1e', borderRadius: 14, padding: 16, border: '1px solid #2a2a2a' }}>
