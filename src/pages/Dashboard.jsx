@@ -91,7 +91,7 @@ export default function Dashboard() {
   const cargarLocal = async () => {
     try {
       const res = await axios.get(`${API}/locales/mi-local/info`, { headers })
-      setAbierto(res.data.abierto)
+      setAbierto(res.data.abierto == true)
     } catch (e) {}
   }
 
