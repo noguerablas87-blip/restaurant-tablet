@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 const API = 'https://restaurant-backend-production-1271.up.railway.app'
+const MENU_BASE = 'https://menu.valmai.com.py'
 
 const METODO_LABEL = {
   efectivo:      { icon: '💵', label: 'Efectivo' },
@@ -40,6 +41,7 @@ export default function Dashboard() {
   const [abierto, setAbierto] = useState(false)
   const [stats, setStats] = useState(null)
   const [localPublico, setLocalPublico] = useState(null)
+  const [linkCopiado, setLinkCopiado] = useState(false)
   const [audioActivado, setAudioActivado] = useState(() => sessionStorage.getItem('audioActivado') === 'true')
   const nombre = localStorage.getItem('nombre') || 'Mi local'
   const token = localStorage.getItem('token')
@@ -47,6 +49,26 @@ export default function Dashboard() {
   const slug = localStorage.getItem('slug')
   const wsRef = useRef(null)
   const headers = { Authorization: `Bearer ${token}` }
+
+  const linkPedidos = `${MENU_BASE}/${slug}`
+
+  const copiarLink = () => {
+    const escribir = () => { setLinkCopiado(true); setTimeout(() => setLinkCopiado(false), 2000) }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(linkPedidos).then(escribir).catch(() => {
+        // Fallback si el navegador bloquea el portapapeles
+        const ta = document.createElement('textarea')
+        ta.value = linkPedidos; document.body.appendChild(ta); ta.select()
+        try { document.execCommand('copy') } catch (e) {}
+        document.body.removeChild(ta); escribir()
+      })
+    } else {
+      const ta = document.createElement('textarea')
+      ta.value = linkPedidos; document.body.appendChild(ta); ta.select()
+      try { document.execCommand('copy') } catch (e) {}
+      document.body.removeChild(ta); escribir()
+    }
+  }
 
   const activarAudio = () => {
     try {
@@ -214,6 +236,33 @@ export default function Dashboard() {
               <span>{b.icon}</span> {b.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* LINK PEDIDOS EXTERNOS (delivery / retiro) */}
+      <div style={{ padding: '14px 16px 0' }}>
+        <div style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 14, padding: '14px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: 16 }}>📲</span>
+            <span style={{ fontSize: 12, fontWeight: 800, color: '#34d399', letterSpacing: 0.5 }}>LINK PARA DELIVERY Y RETIRO</span>
+          </div>
+          <p style={{ margin: '0 0 10px', fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+            Compartí este link por WhatsApp para que tus clientes pidan delivery o para retirar.
+          </p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 180, background: 'rgba(0,0,0,0.3)', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: 'rgba(255,255,255,0.8)', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {linkPedidos}
+            </div>
+            <button onClick={copiarLink} style={{
+              background: linkCopiado ? '#22c55e' : 'rgba(34,197,94,0.15)',
+              color: linkCopiado ? '#fff' : '#34d399',
+              border: '1px solid rgba(34,197,94,0.3)',
+              borderRadius: 10, padding: '10px 18px', fontSize: 13, fontWeight: 700,
+              cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.2s',
+            }}>
+              {linkCopiado ? '✓ Copiado' : '📋 Copiar link'}
+            </button>
+          </div>
         </div>
       </div>
 
