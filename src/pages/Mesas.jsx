@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 const API = 'https://restaurant-backend-production-1271.up.railway.app'
-const BASE_URL = 'https://illustrious-macaron-a47aaf.netlify.app'
+const BASE_URL = 'https://menu.valmai.com.py'
 
 export default function Mesas() {
   const navigate = useNavigate()
